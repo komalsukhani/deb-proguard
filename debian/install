@@ -1,0 +1,4 @@
+lib/proguard.jar /usr/share/java
+lib/proguardgui.jar /usr/share/java
+proguard /usr/bin
+proguardgui /usr/bin

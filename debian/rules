@@ -1,0 +1,25 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+include /usr/share/cdbs/1/rules/buildcore.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+
+JAVA_COMPILER = jikes-classpath +E +Z0
+JAR = jar
+
+#common-build::
+binary-indep:
+	mkdir -p build
+	${JAVA_COMPILER} -d build/proguard -sourcepath src src/proguard/ProGuard.java
+	${JAVA_COMPILER} -d build/retrace -sourcepath src src/proguard/retrace/ReTrace.java
+	${JAVA_COMPILER} -d build/proguardgui -cp build/proguard -sourcepath src src/proguard/gui/ProGuardGUI.java
+	${JAVA_COMPILER} -cp /usr/lib/java/ant-1.6.jar -d build -sourcepath src src/proguard/gui/ProGuardGUI.java
+	${JAR} cfm lib/proguard.jar proguard.manifest -C build proguard
+	${JAR} cfm lib/proguardgui.jar proguardgui.manifest -C build/proguardgui .
+	cd src && ${JAR} uf ../lib/proguardgui.jar proguard/gui/vtitle.gif proguard/gui/arrow.gif proguard/gui/default.pro proguard/gui/GUIResources.properties proguard/gui/boilerplate.pro
+
+clean::
+	rm -f lib/*.jar
+	rm -rf build/

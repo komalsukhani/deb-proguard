@@ -1,0 +1,17 @@
+Source: proguard
+Section: devel
+Priority: optional
+Maintainer: Sam Clegg <samo@debian.org>
+Build-Depends: debhelper (>= 4.1.0), cdbs, jikes-classpath, libant1.6-java
+Standards-Version: 3.6.1
+
+Package: proguard
+Architecture: any
+Depends: ${misc:Depends}, kaffe | java-virtual-machine
+Description: java class file shrinker, optimizer, and obfuscator
+ ProGuard is a free Java class file shrinker, optimizer, and
+ obfuscator.  It can detect and remove unused classes, fields,
+ methods, and attributes. It can then optimize bytecode and remove
+ unused instructions. Finally, it can rename the remaining classes,
+ fields, and methods using short meaningless names. The resulting jars
+ are smaller and harder to reverse-engineer.
