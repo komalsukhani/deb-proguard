@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec kaffe -cp /usr/share/java/proguard.jar:/usr/share/java/proguardgui.jar proguard.gui.ProGuardGUI $*
+exec java -cp /usr/share/java/proguard.jar:/usr/share/java/proguardgui.jar proguard.gui.ProGuardGUI $*
