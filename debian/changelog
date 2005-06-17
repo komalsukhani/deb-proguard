@@ -1,3 +1,11 @@
+proguard (3.2-3) unstable; urgency=low
+
+  * debian/rules: fix FTBFS (Closes: #312024)
+  * debian/control: fix FTBFS by added Build-Depend on fastjar
+    - Thanks to Regis Boudin <regis@boudin.name>
+
+ -- Sam Clegg <samo@debian.org>  Fri, 17 Jun 2005 14:25:24 +0100
+
 proguard (3.2-2) unstable; urgency=low
 
   * fix java executable name in proguard and proguardgui shell
