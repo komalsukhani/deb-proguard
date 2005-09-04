@@ -1,8 +1,8 @@
-/* $Id: ClassFileClassForNameReferenceInitializer.java,v 1.14 2004/12/11 16:35:23 eric Exp $
+/* $Id: ClassFileClassForNameReferenceInitializer.java,v 1.16 2005/06/25 22:07:51 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2004 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -21,9 +21,10 @@
 package proguard.classfile.util;
 
 import proguard.classfile.*;
-import proguard.classfile.attribute.*;
+import proguard.classfile.attribute.CodeAttrInfo;
 import proguard.classfile.instruction.*;
-import proguard.classfile.visitor.*;
+import proguard.classfile.visitor.CpInfoVisitor;
+import proguard.util.ClassNameListMatcher;
 
 
 /**
@@ -41,15 +42,17 @@ import proguard.classfile.visitor.*;
  *
  * @author Eric Lafortune
  */
-class      ClassFileClassForNameReferenceInitializer
-implements InstructionVisitor,
-           CpInfoVisitor
+public class ClassFileClassForNameReferenceInitializer
+  implements InstructionVisitor,
+             CpInfoVisitor
 {
-    private ClassPool programClassPool;
-    private boolean   note;
+    private ClassPool            programClassPool;
+    private ClassPool            libraryClassPool;
+    private boolean              note;
+    private ClassNameListMatcher noteExceptionMatcher;
 
     // Counter for notes.
-    private int       noteCount;
+    private int noteCount;
 
     // Fields to remember the previous StringCpInfo and MethodRefCpInfo objects
     // while visiting all instructions (to find Class.forName, class$, and
@@ -65,21 +68,27 @@ implements InstructionVisitor,
     /**
      * Creates a new ClassFileClassForNameReferenceInitializer that prints notes.
      */
-    public ClassFileClassForNameReferenceInitializer(ClassPool programClassPool)
+    public ClassFileClassForNameReferenceInitializer(ClassPool programClassPool,
+                                                     ClassPool libraryClassPool)
     {
-        this(programClassPool, true);
+        this(programClassPool, libraryClassPool, true, null);
     }
 
 
     /**
      * Creates a new ClassFileClassForNameReferenceInitializer that optionally
-     * prints notes.
+     * prints notes, with optional class specifications for which never to
+     * print notes.
      */
-    public ClassFileClassForNameReferenceInitializer(ClassPool programClassPool,
-                                                     boolean   note)
+    public ClassFileClassForNameReferenceInitializer(ClassPool            programClassPool,
+                                                     ClassPool            libraryClassPool,
+                                                     boolean              note,
+                                                     ClassNameListMatcher noteExceptionMatcher)
     {
-        this.programClassPool = programClassPool;
-        this.note             = note;
+        this.programClassPool     = programClassPool;
+        this.libraryClassPool     = libraryClassPool;
+        this.note                 = note;
+        this.noteExceptionMatcher = noteExceptionMatcher;
     }
 
 
@@ -238,7 +247,7 @@ implements InstructionVisitor,
         String externalClassName = stringCpInfo.getString(classFile);
         String internalClassName = ClassUtil.internalClassName(externalClassName);
 
-        stringCpInfo.referencedClassFile = programClassPool.getClass(internalClassName);
+        stringCpInfo.referencedClassFile = findClass(internalClassName);
     }
 
 
@@ -247,7 +256,9 @@ implements InstructionVisitor,
      */
     public void visitClassCpInfo(ClassFile classFile, ClassCpInfo classCpInfo)
     {
-        if (note)
+        if (note &&
+            (noteExceptionMatcher == null ||
+             !noteExceptionMatcher.matches(classCpInfo.getName(classFile))))
         {
             noteCount++;
             System.err.println("Note: " +
@@ -256,5 +267,24 @@ implements InstructionVisitor,
                                ClassUtil.externalClassName(classCpInfo.getName(classFile)) +
                                ")Class.forName(variable).newInstance()'");
         }
+    }
+
+
+    /**
+     * Returns the class with the given name, either for the program class pool
+     * or from the library class pool, or <code>null</code> if it can't be found.
+     */
+    private ClassFile findClass(String name)
+    {
+        // First look for the class in the program class pool.
+        ClassFile classFile = programClassPool.getClass(name);
+
+        // Otherwise look for the class in the library class pool.
+        if (classFile == null)
+        {
+            classFile = libraryClassPool.getClass(name);
+        }
+
+        return classFile;
     }
 }

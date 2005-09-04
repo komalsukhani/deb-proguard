@@ -1,8 +1,8 @@
-/* $Id: UsageMarker.java,v 1.37 2004/12/19 21:03:54 eric Exp $
+/* $Id: UsageMarker.java,v 1.46 2005/06/26 16:19:24 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2004 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -55,7 +55,8 @@ public class UsageMarker
     private static final Object USED          = new Object();
 
 
-    private MyInterfaceUsageMarker interfaceUsageMarker = new MyInterfaceUsageMarker();
+    private MyInterfaceUsageMarker          interfaceUsageMarker          = new MyInterfaceUsageMarker();
+    private MyPossiblyUsedMethodUsageMarker possiblyUsedMethodUsageMarker = new MyPossiblyUsedMethodUsageMarker();
 //    private ClassFileVisitor       dynamicClassMarker   =
 //        new MultiClassFileVisitor(
 //        new ClassFileVisitor[]
@@ -66,57 +67,57 @@ public class UsageMarker
 //                                   this)
 //        });
 
-    
-    // A field acting as a parameter to the visitMemberInfo method.
-    private boolean processing = false;
-
 
     // Implementations for ClassFileVisitor.
 
     public void visitProgramClassFile(ProgramClassFile programClassFile)
     {
-        if (!isUsed(programClassFile))
+        if (shouldBeMarkedAsUsed(programClassFile))
         {
             // Mark this class.
             markAsUsed(programClassFile);
 
-            // Mark this class's name.
-            markCpEntry(programClassFile, programClassFile.u2thisClass);
-
-            // Mark the superclass.
-            if (programClassFile.u2superClass != 0)
-            {
-                markCpEntry(programClassFile, programClassFile.u2superClass);
-            }
-
-            // Give the interfaces preliminary marks.
-            programClassFile.hierarchyAccept(false, false, true, false,
-                                             interfaceUsageMarker);
-
-            // Explicitly mark the <clinit> method.
-            programClassFile.methodAccept(ClassConstants.INTERNAL_METHOD_NAME_CLINIT,
-                                          ClassConstants.INTERNAL_METHOD_TYPE_CLINIT,
-                                          this);
-
-            // Explicitly mark the parameterless <init> method.
-            programClassFile.methodAccept(ClassConstants.INTERNAL_METHOD_NAME_INIT,
-                                          ClassConstants.INTERNAL_METHOD_TYPE_INIT,
-                                          this);
-
-            // Process all methods that have already been marked as possibly used.
-            processing = true;
-            programClassFile.methodsAccept(this);
-            processing = false;
-
-            // Mark the attributes.
-            programClassFile.attributesAccept(this);
+            markProgramClassBody(programClassFile);
         }
+    }
+
+
+    protected void markProgramClassBody(ProgramClassFile programClassFile)
+    {
+        // Mark this class's name.
+        markCpEntry(programClassFile, programClassFile.u2thisClass);
+
+        // Mark the superclass.
+        if (programClassFile.u2superClass != 0)
+        {
+            markCpEntry(programClassFile, programClassFile.u2superClass);
+        }
+
+        // Give the interfaces preliminary marks.
+        programClassFile.hierarchyAccept(false, false, true, false,
+                                         interfaceUsageMarker);
+
+        // Explicitly mark the <clinit> method.
+        programClassFile.methodAccept(ClassConstants.INTERNAL_METHOD_NAME_CLINIT,
+                                      ClassConstants.INTERNAL_METHOD_TYPE_CLINIT,
+                                      this);
+
+        // Explicitly mark the parameterless <init> method.
+        programClassFile.methodAccept(ClassConstants.INTERNAL_METHOD_NAME_INIT,
+                                      ClassConstants.INTERNAL_METHOD_TYPE_INIT,
+                                      this);
+
+        // Process all methods that have already been marked as possibly used.
+        programClassFile.methodsAccept(possiblyUsedMethodUsageMarker);
+
+        // Mark the attributes.
+        programClassFile.attributesAccept(this);
     }
 
 
     public void visitLibraryClassFile(LibraryClassFile libraryClassFile)
     {
-        if (!isUsed(libraryClassFile))
+        if (shouldBeMarkedAsUsed(libraryClassFile))
         {
             markAsUsed(libraryClassFile);
 
@@ -158,7 +159,7 @@ public class UsageMarker
     {
         public void visitProgramClassFile(ProgramClassFile programClassFile)
         {
-            if (!isUsed(programClassFile))
+            if (shouldBeMarkedAsPossiblyUsed(programClassFile))
             {
                 // We can't process the interface yet, because it might not
                 // be required. Give it a preliminary mark.
@@ -174,11 +175,39 @@ public class UsageMarker
     }
 
 
+    private class MyPossiblyUsedMethodUsageMarker implements MemberInfoVisitor
+    {
+        // Implementations for MemberInfoVisitor.
+    
+        public void visitProgramFieldInfo(ProgramClassFile programClassFile, ProgramFieldInfo programFieldInfo) {}
+    
+    
+        public void visitProgramMethodInfo(ProgramClassFile programClassFile, ProgramMethodInfo programMethodInfo)
+        {
+            // Has the method already been referenced?
+            if (isPossiblyUsed(programMethodInfo))
+            {
+                markAsUsed(programMethodInfo);
+
+                // Mark the method body.
+                markProgramMethodBody(programClassFile, programMethodInfo);
+                
+                // Note that, if the method has been marked as possibly used,
+                // the method hierarchy has already been marked (cfr. below).
+            }
+        }
+    
+    
+        public void visitLibraryFieldInfo(LibraryClassFile libraryClassFile, LibraryFieldInfo libraryFieldInfo) {}
+        public void visitLibraryMethodInfo(LibraryClassFile libraryClassFile, LibraryMethodInfo libraryMethodInfo) {}
+    }
+
+    
     // Implementations for MemberInfoVisitor.
 
     public void visitProgramFieldInfo(ProgramClassFile programClassFile, ProgramFieldInfo programFieldInfo)
     {
-        if (!isUsed(programFieldInfo))
+        if (shouldBeMarkedAsUsed(programFieldInfo))
         {
             markAsUsed(programFieldInfo);
 
@@ -197,45 +226,28 @@ public class UsageMarker
 
     public void visitProgramMethodInfo(ProgramClassFile programClassFile, ProgramMethodInfo programMethodInfo)
     {
-        if (!isUsed(programMethodInfo))
+        if (shouldBeMarkedAsUsed(programMethodInfo))
         {
-            // Are the method and its class used?
-            if (processing ? isPossiblyUsed(programMethodInfo) :
-                             isUsed(programClassFile))
+            // Is the method's class used?
+            if (isUsed(programClassFile))
             {
                 markAsUsed(programMethodInfo);
 
-                // Remember the processing flag.
-                boolean oldProcessing = processing;
-                processing = false;
+                // Mark the method body.
+                markProgramMethodBody(programClassFile, programMethodInfo);
 
-                // Mark the name and descriptor.
-                markCpEntry(programClassFile, programMethodInfo.u2nameIndex);
-                markCpEntry(programClassFile, programMethodInfo.u2descriptorIndex);
-
-                // Mark the attributes.
-                programMethodInfo.attributesAccept(programClassFile, this);
-
-                // Mark the classes referenced in the descriptor string.
-                programMethodInfo.referencedClassesAccept(this);
-
-                // Restore the processing flag.
-                processing = oldProcessing;
-
-                // If the method is being called, mark its hierarchy.
-                if (!processing)
-                {
-                    markMethodHierarchy(programClassFile, programMethodInfo);
-                }
+                // Mark the method hierarchy.
+                markMethodHierarchy(programClassFile, programMethodInfo);
             }
-            else if (!processing && !isPossiblyUsed(programMethodInfo))
+            
+            // Hasn't the method been marked as possibly being used yet?
+            else if (shouldBeMarkedAsPossiblyUsed(programMethodInfo))
             {
-                // We can't process the class member yet, because the class
-                // file isn't marked as being used (yet). Give it a
-                // preliminary mark.
+                // We can't process the method yet, because the class isn't
+                // marked as being used (yet). Give it a preliminary mark.
                 markAsPossiblyUsed(programMethodInfo);
 
-                // The method is being called. Mark its hierarchy.
+                // Mark the method hierarchy.
                 markMethodHierarchy(programClassFile, programMethodInfo);
             }
         }
@@ -246,58 +258,37 @@ public class UsageMarker
 
     public void visitLibraryMethodInfo(LibraryClassFile libraryClassFile, LibraryMethodInfo libraryMethodInfo)
     {
-        if (!isUsed(libraryMethodInfo))
+        if (shouldBeMarkedAsUsed(libraryMethodInfo))
         {
             markAsUsed(libraryMethodInfo);
-            
+
+            // Mark the method hierarchy.
             markMethodHierarchy(libraryClassFile, libraryMethodInfo);
         }
     }
 
 
-    private void markMethodHierarchy(ClassFile classFile, MethodInfo methodInfo)
+    protected void markProgramMethodBody(ProgramClassFile programClassFile, ProgramMethodInfo programMethodInfo)
     {
-        if ((methodInfo.getAccessFlags() &
-             (ClassConstants.INTERNAL_ACC_PRIVATE |
-              ClassConstants.INTERNAL_ACC_FINAL)) == 0)
-        {
-            String name = methodInfo.getName(classFile);
-            String type = methodInfo.getDescriptor(classFile);
+        // Mark the name and descriptor.
+        markCpEntry(programClassFile, programMethodInfo.u2nameIndex);
+        markCpEntry(programClassFile, programMethodInfo.u2descriptorIndex);
 
-            if (!name.equals(ClassConstants.INTERNAL_METHOD_NAME_INIT) &&
-                !name.equals(ClassConstants.INTERNAL_METHOD_NAME_CLINIT))
-            {
-                // Mark all implementations of the method.
-                //
-                // For an abstract method:
-                //   First go to all concrete implementations or extensions of
-                //   the interface or abstract class.
-                //   From there, travel up and down the class hierarchy to mark
-                //   the method.
-                //
-                //   This way, we're also catching retro-fitted interfaces,
-                //   where a class's implementation of an interface method is
-                //   hiding higher up its class hierarchy.
-                //
-                // For a concrete method:
-                //   Simply mark all overriding implementations down the
-                //   class hierarchy.
-                classFile.accept(
-                    (classFile.getAccessFlags()  & ClassConstants.INTERNAL_ACC_INTERFACE) != 0 ||
-                    (methodInfo.getAccessFlags() & ClassConstants.INTERNAL_ACC_ABSTRACT)  != 0 ?
-    
-                        (ClassFileVisitor)
-                        new ConcreteClassFileDownTraveler(
-                        new ClassFileHierarchyTraveler(true, true, false, true,
-                        new NamedMethodVisitor(name, type,
-                        new MemberInfoAccessFilter(0, ClassConstants.INTERNAL_ACC_PRIVATE, this)))) :
-    
-                        (ClassFileVisitor)
-                        new ClassFileHierarchyTraveler(false, false, false, true,
-                        new NamedMethodVisitor(name, type,
-                        new MemberInfoAccessFilter(0, ClassConstants.INTERNAL_ACC_PRIVATE, this))));
-            }
-        }
+        // Mark the attributes.
+        programMethodInfo.attributesAccept(programClassFile, this);
+
+        // Mark the classes referenced in the descriptor string.
+        programMethodInfo.referencedClassesAccept(this);
+    }
+
+
+    /**
+     * Marks the hierarchy of implementing or overriding methods corresponding
+     * to the given method, if any.
+     */
+    protected void markMethodHierarchy(ClassFile classFile, MethodInfo methodInfo)
+    {
+        classFile.methodImplementationsAccept(methodInfo, false, this);
     }
 
 
@@ -305,7 +296,7 @@ public class UsageMarker
 
     public void visitIntegerCpInfo(ClassFile classFile, IntegerCpInfo integerCpInfo)
     {
-        if (!isUsed(integerCpInfo))
+        if (shouldBeMarkedAsUsed(integerCpInfo))
         {
             markAsUsed(integerCpInfo);
         }
@@ -314,7 +305,7 @@ public class UsageMarker
 
     public void visitLongCpInfo(ClassFile classFile, LongCpInfo longCpInfo)
     {
-        if (!isUsed(longCpInfo))
+        if (shouldBeMarkedAsUsed(longCpInfo))
         {
             markAsUsed(longCpInfo);
         }
@@ -323,7 +314,7 @@ public class UsageMarker
 
     public void visitFloatCpInfo(ClassFile classFile, FloatCpInfo floatCpInfo)
     {
-        if (!isUsed(floatCpInfo))
+        if (shouldBeMarkedAsUsed(floatCpInfo))
         {
             markAsUsed(floatCpInfo);
         }
@@ -332,7 +323,7 @@ public class UsageMarker
 
     public void visitDoubleCpInfo(ClassFile classFile, DoubleCpInfo doubleCpInfo)
     {
-        if (!isUsed(doubleCpInfo))
+        if (shouldBeMarkedAsUsed(doubleCpInfo))
         {
             markAsUsed(doubleCpInfo);
         }
@@ -341,7 +332,7 @@ public class UsageMarker
 
     public void visitStringCpInfo(ClassFile classFile, StringCpInfo stringCpInfo)
     {
-        if (!isUsed(stringCpInfo))
+        if (shouldBeMarkedAsUsed(stringCpInfo))
         {
             markAsUsed(stringCpInfo);
 
@@ -359,7 +350,7 @@ public class UsageMarker
 
     public void visitUtf8CpInfo(ClassFile classFile, Utf8CpInfo utf8CpInfo)
     {
-        if (!isUsed(utf8CpInfo))
+        if (shouldBeMarkedAsUsed(utf8CpInfo))
         {
             markAsUsed(utf8CpInfo);
         }
@@ -386,7 +377,7 @@ public class UsageMarker
 
     private void visitRefCpInfo(ClassFile classFile, RefCpInfo methodrefCpInfo)
     {
-        if (!isUsed(methodrefCpInfo))
+        if (shouldBeMarkedAsUsed(methodrefCpInfo))
         {
             markAsUsed(methodrefCpInfo);
 
@@ -407,7 +398,7 @@ public class UsageMarker
 
     public void visitClassCpInfo(ClassFile classFile, ClassCpInfo classCpInfo)
     {
-        if (!isUsed(classCpInfo))
+        if (shouldBeMarkedAsUsed(classCpInfo))
         {
             markAsUsed(classCpInfo);
 
@@ -421,15 +412,12 @@ public class UsageMarker
 
     public void visitNameAndTypeCpInfo(ClassFile classFile, NameAndTypeCpInfo nameAndTypeCpInfo)
     {
-        if (!isUsed(nameAndTypeCpInfo))
+        if (shouldBeMarkedAsUsed(nameAndTypeCpInfo))
         {
             markAsUsed(nameAndTypeCpInfo);
 
             markCpEntry(classFile, nameAndTypeCpInfo.u2nameIndex);
             markCpEntry(classFile, nameAndTypeCpInfo.u2descriptorIndex);
-
-            // Mark the classes referenced in the descriptor string.
-            nameAndTypeCpInfo.referencedClassesAccept(this);
         }
     }
 
@@ -451,7 +439,7 @@ public class UsageMarker
     {
         // Don't mark the attribute and its name yet. We may mark it later, in
         // InnerUsageMarker.
-        //markAsUsed(innerClassesAttrInfo);
+        //_markAsUsed(innerClassesAttrInfo);
 
         //markCpEntry(classFile, innerClassesAttrInfo.u2attrNameIndex);
         innerClassesAttrInfo.innerClassEntriesAccept(classFile, this);
@@ -784,41 +772,78 @@ public class UsageMarker
     // Small utility methods.
 
     /**
+     * Marks the given visitor accepter as being used.
+     */
+    protected void markAsUsed(VisitorAccepter visitorAccepter)
+    {
+        visitorAccepter.setVisitorInfo(USED);
+    }
+
+
+    /**
+     * Returns whether the given visitor accepter should still be marked as
+     * being used.
+     */
+    protected boolean shouldBeMarkedAsUsed(VisitorAccepter visitorAccepter)
+    {
+        return visitorAccepter.getVisitorInfo() != USED;
+    }
+
+
+    /**
+     * Returns whether the given visitor accepter has been marked as being used.
+     */
+    protected boolean isUsed(VisitorAccepter visitorAccepter)
+    {
+        return visitorAccepter.getVisitorInfo() == USED;
+    }
+
+
+    /**
+     * Marks the given visitor accepter as possibly being used.
+     */
+    protected void markAsPossiblyUsed(VisitorAccepter visitorAccepter)
+    {
+        visitorAccepter.setVisitorInfo(POSSIBLY_USED);
+    }
+
+
+    /**
+     * Returns whether the given visitor accepter should still be marked as
+     * possibly being used.
+     */
+    protected boolean shouldBeMarkedAsPossiblyUsed(VisitorAccepter visitorAccepter)
+    {
+        return visitorAccepter.getVisitorInfo() != USED &&
+               visitorAccepter.getVisitorInfo() != POSSIBLY_USED;
+    }
+
+
+    /**
+     * Returns whether the given visitor accepter has been marked as possibly
+     * being used.
+     */
+    protected boolean isPossiblyUsed(VisitorAccepter visitorAccepter)
+    {
+        return visitorAccepter.getVisitorInfo() == POSSIBLY_USED;
+    }
+
+
+    /**
+     * Clears any usage marks from the given visitor accepter.
+     */
+    protected void markAsUnused(VisitorAccepter visitorAccepter)
+    {
+        visitorAccepter.setVisitorInfo(null);
+    }
+
+
+    /**
      * Marks the given constant pool entry of the given class. This includes
      * visiting any referenced objects.
      */
     private void markCpEntry(ClassFile classFile, int index)
     {
          classFile.constantPoolEntryAccept(index, this);
-    }
-
-
-    static void markAsUnused(VisitorAccepter visitorAccepter)
-    {
-        visitorAccepter.setVisitorInfo(null);
-    }
-
-
-    static void markAsPossiblyUsed(VisitorAccepter visitorAccepter)
-    {
-        visitorAccepter.setVisitorInfo(POSSIBLY_USED);
-    }
-
-
-    static boolean isPossiblyUsed(VisitorAccepter visitorAccepter)
-    {
-        return visitorAccepter.getVisitorInfo() == POSSIBLY_USED;
-    }
-
-
-    static void markAsUsed(VisitorAccepter visitorAccepter)
-    {
-        visitorAccepter.setVisitorInfo(USED);
-    }
-
-
-    static boolean isUsed(VisitorAccepter visitorAccepter)
-    {
-        return visitorAccepter.getVisitorInfo() == USED;
     }
 }

@@ -1,8 +1,8 @@
-/* $Id: MemberInfoLinker.java,v 1.9 2004/11/20 15:41:24 eric Exp $
+/* $Id: MethodInfoLinker.java,v 1.2 2005/06/11 13:13:15 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2004 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -18,28 +18,24 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package proguard.obfuscate;
+package proguard.classfile.util;
 
 import proguard.classfile.*;
 import proguard.classfile.visitor.*;
 
 import java.util.*;
 
-
 /**
- * This ClassFileVisitor links all methods that should get the same names
- * in the name spaces of all visited class files. A class file's name space
- * encompasses all of its subclasses and interfaces. It is typically a class file
- * that is not being subclassed. Chains of links that have been created in
+ * This ClassFileVisitor links all corresponding methods in the class hierarchies
+ * of all visited class files. Visited class files are typically all class
+ * files that are not being subclassed. Chains of links that have been created in
  * previous invocations are merged with new chains of links, in order to create
  * a consistent set of chains. Class initialization methods and constructors are
  * ignored.
  *
- * @see MemberInfoObfuscator
- *
  * @author Eric Lafortune
  */
-public class MemberInfoLinker
+public class MethodInfoLinker
   implements ClassFileVisitor,
              MemberInfoVisitor
 {
@@ -52,11 +48,11 @@ public class MemberInfoLinker
 
     public void visitProgramClassFile(ProgramClassFile programClassFile)
     {
-        // Collect all members in this class's name space.
+        // Collect all members in this class hierarchy.
         programClassFile.hierarchyAccept(true, true, true, false,
                                          new AllMemberInfoVisitor(this));
 
-        // Clean up for obfuscation of the next name space.
+        // Clean up for the next class hierarchy.
         methodInfoMap.clear();
     }
 
@@ -117,7 +113,7 @@ public class MemberInfoLinker
         }
 
         // Get the last method in the chain.
-        MemberInfo thisLastMemberInfo = lastMemberInfo(methodInfo);
+        MemberInfo thisLastMethodInfo = lastMethodInfo(methodInfo);
 
         // See if we've already come across a method with the same name and
         // descriptor.
@@ -127,37 +123,24 @@ public class MemberInfoLinker
         if (otherMethodInfo == null)
         {
             // Store the new class method info in the map.
-            methodInfoMap.put(key, thisLastMemberInfo);
+            methodInfoMap.put(key, thisLastMethodInfo);
         }
         else
         {
             // Get the last method in the other chain.
-            MemberInfo otherLastMemberInfo = lastMemberInfo(otherMethodInfo);
+            MethodInfo otherLastMethodInfo = lastMethodInfo(otherMethodInfo);
 
             // Check if both link chains aren't already ending in the same element.
-            if (thisLastMemberInfo != otherLastMemberInfo)
+            if (!thisLastMethodInfo.equals(otherLastMethodInfo))
             {
-                // Merge the two chains, making sure LibraryMethodInfo elements,
-                // if any, are at the end of the resulting chain.
-                if (thisLastMemberInfo instanceof LibraryMethodInfo)
+                // Merge the two chains, with the library members last.
+                if (otherLastMethodInfo instanceof LibraryMemberInfo)
                 {
-                    // This class method chain ends with a library class method.
-                    // Link this chain to the end of the other one.
-                    otherLastMemberInfo.setVisitorInfo(thisLastMemberInfo);
+                    thisLastMethodInfo.setVisitorInfo(otherLastMethodInfo);
                 }
-                /* We can skip this test and go straight to the final case.
-                else if (otherLastVisitorAccepter instanceof LibraryMethodInfo)
-                {
-                    // The other method chain ends with a library class method.
-                    // Link the other chain to the end of this one.
-                    thisLastVisitorAccepter.setVisitorInfo(otherLastVisitorAccepter);
-                }
-                */
                 else
                 {
-                    // We have two non-library methods. Link their chains
-                    // one way or another.
-                    thisLastMemberInfo.setVisitorInfo(otherLastMemberInfo);
+                    otherLastMethodInfo.setVisitorInfo(thisLastMethodInfo);
                 }
             }
         }
@@ -167,19 +150,36 @@ public class MemberInfoLinker
     // Small utility methods.
 
     /**
-     * Finds the last class member in the linked list of class members.
-     * @param memberInfo the given class member.
-     * @return the last class member in the linked list.
+     * Finds the last method in the linked list of related methods.
+     * @param methodInfo the given method.
+     * @return the last method in the linked list.
      */
-    static MemberInfo lastMemberInfo(MemberInfo memberInfo)
+    public static MethodInfo lastMethodInfo(MethodInfo methodInfo)
     {
-        VisitorAccepter lastVisitorAccepter = memberInfo;
+        MethodInfo lastMethodInfo = methodInfo;
+        while (lastMethodInfo.getVisitorInfo() != null &&
+               lastMethodInfo.getVisitorInfo() instanceof MethodInfo)
+        {
+            lastMethodInfo = (MethodInfo)lastMethodInfo.getVisitorInfo();
+        }
+
+        return lastMethodInfo;
+    }
+
+    /**
+     * Finds the last visitor accepter in the linked list of visitors.
+     * @param visitorAccepter the given method.
+     * @return the last method in the linked list.
+     */
+    public static VisitorAccepter lastVisitorAccepter(VisitorAccepter visitorAccepter)
+    {
+        VisitorAccepter lastVisitorAccepter = visitorAccepter;
         while (lastVisitorAccepter.getVisitorInfo() != null &&
                lastVisitorAccepter.getVisitorInfo() instanceof VisitorAccepter)
         {
             lastVisitorAccepter = (VisitorAccepter)lastVisitorAccepter.getVisitorInfo();
         }
 
-        return (MemberInfo)lastVisitorAccepter;
+        return lastVisitorAccepter;
     }
 }

@@ -1,0 +1,3 @@
+version=3
+
+http://prdownloads.sourceforge.net/proguard/proguard(\d+\.\d+\.\d+)\.tar\.gz
