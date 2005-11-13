@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec java -jar /usr/share/java/proguard.jar $*
+exec java -Xss300000 -jar /usr/share/java/proguard.jar $*

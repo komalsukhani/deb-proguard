@@ -1,3 +1,12 @@
+proguard (3.4-1) unstable; urgency=low
+
+  * New upstream release (Closes: #338355)
+  * debian/control: bump standards version
+  * debian/copyright: update FSF address
+  * increase java stack size for proguard and proguardgui
+
+ -- Sam Clegg <samo@debian.org>  Sun, 13 Nov 2005 09:42:59 +0000
+
 proguard (3.3.2-1) unstable; urgency=low
 
   * New upstream release
