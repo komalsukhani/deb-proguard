@@ -1,8 +1,8 @@
-/* $Id: Optimizer.java,v 1.9 2005/10/22 11:55:29 eric Exp $
+/* $Id: Optimizer.java,v 1.9.2.4 2006/02/13 00:19:28 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -125,6 +125,20 @@ public class Optimizer
         programClassPool.accept(classPoolvisitor);
         libraryClassPool.accept(classPoolvisitor);
 
+        // All library classes and library class members remain unchanged.
+        libraryClassPool.classFilesAccept(keepMarker);
+        libraryClassPool.classFilesAccept(new AllMemberInfoVisitor(keepMarker));
+
+        // We also keep all classes that are involved in .class constructs.
+        programClassPool.classFilesAccept(new AllMethodVisitor(
+                                          new AllAttrInfoVisitor(
+                                          new AllInstructionVisitor(
+                                          new DotClassClassFileVisitor(keepMarker)))));
+
+        // We also keep all classes that are involved in Class.forName constructs.
+        programClassPool.classFilesAccept(new AllCpInfoVisitor(
+                                          new ClassForNameClassFileVisitor(keepMarker)));
+
         // Attach some optimization info to all methods, so it can be filled
         // out later.
         programClassPool.classFilesAccept(new AllMethodVisitor(
@@ -205,7 +219,7 @@ public class Optimizer
                                           new ParameterShrinker(1024, 64, parameterShrinkCounter, staticMethodCounter)));
 
         // Fix all references to class files.
-        programClassPool.classFilesAccept(new ClassFileReferenceFixer());
+        programClassPool.classFilesAccept(new ClassFileReferenceFixer(true));
 
         // Fix all references to class members.
         programClassPool.classFilesAccept(new MemberReferenceFixer(1024));

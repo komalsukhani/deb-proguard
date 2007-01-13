@@ -1,8 +1,8 @@
-/* $Id: GotoReturnReplacer.java,v 1.8 2005/07/31 18:50:05 eric Exp $
+/* $Id: GotoReturnReplacer.java,v 1.8.2.2 2006/02/13 00:20:43 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -100,7 +100,7 @@ public class GotoReturnReplacer implements InstructionVisitor
                              new SimpleInstruction(targetInstruction.opcode);
                         codeAttrInfoEditor.replaceInstruction(offset,
                                                               returnInstruction);
-        
+
                         // Visit the instruction, if required.
                         if (extraInstructionVisitor != null)
                         {

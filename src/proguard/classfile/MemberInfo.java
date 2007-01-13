@@ -1,9 +1,9 @@
-/* $Id: MemberInfo.java,v 1.20 2005/06/11 13:13:15 eric Exp $
+/* $Id: MemberInfo.java,v 1.20.2.2 2006/02/08 00:04:25 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
  * Copyright (c) 1999      Mark Welsh (markw@retrologic.com)
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -21,7 +21,7 @@
  */
 package proguard.classfile;
 
-import proguard.classfile.visitor.MemberInfoVisitor;
+import proguard.classfile.visitor.*;
 
 /**
  * Representation of a field or method from a program class file.
@@ -50,4 +50,10 @@ public interface MemberInfo extends VisitorAccepter
      * Accepts the given class file visitor.
      */
     public void accept(ClassFile classFile, MemberInfoVisitor memberInfoVisitor);
+
+    /**
+     * Lets the ClassFile objects referenced in the descriptor string
+     * accept the given visitor.
+     */
+    public void referencedClassesAccept(ClassFileVisitor classFileVisitor);
 }

@@ -1,8 +1,8 @@
-/* $Id: MemberReferenceFixer.java,v 1.4 2005/06/25 22:07:51 eric Exp $
+/* $Id: MemberReferenceFixer.java,v 1.4.2.3 2006/10/14 12:33:22 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -23,6 +23,7 @@ package proguard.classfile.editor;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.annotation.*;
+import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.*;
 
 /**
@@ -256,11 +257,19 @@ implements   ClassFileVisitor,
 
     public void visitClassCpInfo(ClassFile classFile, ClassCpInfo classCpInfo)
     {
-        // Check if this class entry refers to an interface class.
-        ClassFile referencedClassFile = classCpInfo.referencedClassFile;
-        if (referencedClassFile != null)
+        // Check if this class entry is an array type.
+        if (ClassUtil.isInternalArrayType(classCpInfo.getName(classFile)))
         {
-            isInterfaceMethod = (referencedClassFile.getAccessFlags() & ClassConstants.INTERNAL_ACC_INTERFACE) != 0;
+            isInterfaceMethod = false;
+        }
+        else
+        {
+            // Check if this class entry refers to an interface class.
+            ClassFile referencedClassFile = classCpInfo.referencedClassFile;
+            if (referencedClassFile != null)
+            {
+                isInterfaceMethod = (referencedClassFile.getAccessFlags() & ClassConstants.INTERNAL_ACC_INTERFACE) != 0;
+            }
         }
     }
 
@@ -441,7 +450,7 @@ implements   ClassFileVisitor,
         {
             // Does it have a new name or type?
             String methodName    = elementValue.getMethodName(classFile);
-            String newMethodName = referencedMemberInfo.getName(annotation.referencedClassFiles[0]);
+            String newMethodName = referencedMemberInfo.getName(elementValue.referencedClassFile);
             if (!methodName.equals(newMethodName))
             {
                 // Update the element name index.

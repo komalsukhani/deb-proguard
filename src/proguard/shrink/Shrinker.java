@@ -1,8 +1,8 @@
-/* $Id: Shrinker.java,v 1.1 2005/07/24 12:54:51 eric Exp $
+/* $Id: Shrinker.java,v 1.1.2.3 2006/11/25 16:56:11 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -117,9 +117,9 @@ public class Shrinker
             new MultiClassFileVisitor(
             new ClassFileVisitor[] {
                 new ClassFileShrinker(usageMarker, 1024),
-                new ClassPoolFiller(newProgramClassPool, false)
+                new ClassPoolFiller(newProgramClassPool)
             })));
-        
+
         return newProgramClassPool;
     }
 

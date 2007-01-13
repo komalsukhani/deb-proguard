@@ -1,8 +1,8 @@
-/* $Id: ClassFileReader.java,v 1.6 2005/06/11 13:21:35 eric Exp $
+/* $Id: ClassFileReader.java,v 1.6.2.3 2006/11/26 15:29:20 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -21,7 +21,7 @@
 package proguard.io;
 
 import proguard.classfile.*;
-import proguard.classfile.util.ClassUtil;
+import proguard.classfile.util.*;
 import proguard.classfile.visitor.*;
 
 import java.io.*;
@@ -43,7 +43,7 @@ public class ClassFileReader implements DataEntryReader
     private boolean          isLibrary;
     private boolean          skipNonPublicLibraryClasses;
     private boolean          skipNonPublicLibraryClassMembers;
-    private boolean          note;
+    private WarningPrinter   warningPrinter;
     private ClassFileVisitor classFileVisitor;
 
 
@@ -54,13 +54,13 @@ public class ClassFileReader implements DataEntryReader
     public ClassFileReader(boolean          isLibrary,
                            boolean          skipNonPublicLibraryClasses,
                            boolean          skipNonPublicLibraryClassMembers,
-                           boolean          note,
+                           WarningPrinter   warningPrinter,
                            ClassFileVisitor classFileVisitor)
     {
         this.isLibrary                        = isLibrary;
         this.skipNonPublicLibraryClasses      = skipNonPublicLibraryClasses;
         this.skipNonPublicLibraryClassMembers = skipNonPublicLibraryClassMembers;
-        this.note                             = note;
+        this.warningPrinter                   = warningPrinter;
         this.classFileVisitor                 = classFileVisitor;
     }
 
@@ -85,10 +85,10 @@ public class ClassFileReader implements DataEntryReader
             // Apply the visitor.
             if (classFile != null)
             {
-                if (note &&
-                    !dataEntry.getName().equals(classFile.getName()+ClassConstants.CLASS_FILE_EXTENSION))
+                if (!dataEntry.getName().replace(File.pathSeparatorChar, ClassConstants.INTERNAL_PACKAGE_SEPARATOR).equals(classFile.getName()+ClassConstants.CLASS_FILE_EXTENSION) &&
+                    warningPrinter != null)
                 {
-                    System.err.println("Note: class file [" + dataEntry.getName() + "] unexpectedly contains class [" + ClassUtil.externalClassName(classFile.getName()) + "]");
+                    warningPrinter.print("Warning: class file [" + dataEntry.getName() + "] unexpectedly contains class [" + ClassUtil.externalClassName(classFile.getName()) + "]");
                 }
 
                 classFile.accept(classFileVisitor);

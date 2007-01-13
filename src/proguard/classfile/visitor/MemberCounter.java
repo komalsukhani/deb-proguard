@@ -1,8 +1,8 @@
-/* $Id: MemberCounter.java,v 1.1 2005/07/31 18:50:05 eric Exp $
+/* $Id: MemberCounter.java,v 1.1.2.3 2006/02/13 00:20:43 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -25,23 +25,23 @@ import proguard.classfile.visitor.*;
 
 /**
  * This MemberInfoVisitor counts the number of class members that has been visited.
- * 
+ *
  * @author Eric Lafortune
  */
 public class MemberCounter implements MemberInfoVisitor
 {
     private int count;
-    
-    
+
+
     /**
      * Returns the number of class members that has been visited so far.
      */
     public int getCount()
     {
-        return count++;
+        return count;
     }
-    
-    
+
+
     // Implementations for MemberInfoVisitor.
 
     public void visitLibraryFieldInfo(LibraryClassFile libraryClassFile,
@@ -50,21 +50,21 @@ public class MemberCounter implements MemberInfoVisitor
         count++;
     }
 
-    
+
     public void visitLibraryMethodInfo(LibraryClassFile libraryClassFile,
                                        LibraryMethodInfo libraryMethodInfo)
     {
         count++;
     }
 
-    
+
     public void visitProgramFieldInfo(ProgramClassFile programClassFile,
                                       ProgramFieldInfo programFieldInfo)
     {
         count++;
     }
 
-    
+
     public void visitProgramMethodInfo(ProgramClassFile programClassFile,
                                        ProgramMethodInfo programMethodInfo)
     {

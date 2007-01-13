@@ -1,8 +1,8 @@
-/* $Id: MethodOptimizationInfo.java,v 1.4 2005/06/11 13:13:16 eric Exp $
+/* $Id: MethodOptimizationInfo.java,v 1.4.2.2 2006/06/07 22:36:52 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -99,13 +99,13 @@ public class MethodOptimizationInfo
 
     public static void setMethodOptimizationInfo(MethodInfo methodInfo)
     {
-        MethodInfoLinker.lastMethodInfo(methodInfo).setVisitorInfo(new MethodOptimizationInfo());
+        MethodInfoLinker.lastMemberInfo(methodInfo).setVisitorInfo(new MethodOptimizationInfo());
     }
 
 
     public static MethodOptimizationInfo getMethodOptimizationInfo(MethodInfo methodInfo)
     {
-        Object visitorInfo = MethodInfoLinker.lastMethodInfo(methodInfo).getVisitorInfo();
+        Object visitorInfo = MethodInfoLinker.lastMemberInfo(methodInfo).getVisitorInfo();
 
         return visitorInfo instanceof MethodOptimizationInfo ?
             (MethodOptimizationInfo)visitorInfo :

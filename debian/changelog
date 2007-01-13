@@ -1,3 +1,11 @@
+proguard (3.7-1) unstable; urgency=low
+
+  * New upstream release
+  * debian/control: make Arch: all (Closes: #360115)
+  * use "$@" rather then $* in shell startup scripts (Closes: #364962)
+
+ -- Sam Clegg <samo@debian.org>  Sat, 13 Jan 2007 12:27:45 +0000
+
 proguard (3.4-1) unstable; urgency=low
 
   * New upstream release (Closes: #338355)

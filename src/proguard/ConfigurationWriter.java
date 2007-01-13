@@ -1,8 +1,8 @@
-/* $Id: ConfigurationWriter.java,v 1.18 2005/08/21 19:28:48 eric Exp $
+/* $Id: ConfigurationWriter.java,v 1.18.2.3 2006/06/07 22:36:52 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -140,6 +140,7 @@ public class ConfigurationWriter
         writeOption(ConfigurationConstants.APPLY_MAPPING_OPTION,                              configuration.applyMapping);
         writeOption(ConfigurationConstants.OBFUSCATION_DICTIONARY_OPTION,                     configuration.obfuscationDictionary);
         writeOption(ConfigurationConstants.OVERLOAD_AGGRESSIVELY_OPTION,                      configuration.overloadAggressively);
+        writeOption(ConfigurationConstants.USE_UNIQUE_CLASS_MEMBER_NAMES_OPTION,              configuration.useUniqueClassMemberNames);
         writeOption(ConfigurationConstants.DEFAULT_PACKAGE_OPTION,                            configuration.defaultPackage);
         writeOption(ConfigurationConstants.DONT_USE_MIXED_CASE_CLASS_NAMES_OPTION,            !configuration.useMixedCaseClassNames);
         writeOption(ConfigurationConstants.KEEP_ATTRIBUTES_OPTION,                            ListUtil.commaSeparatedString(configuration.keepAttributes));
@@ -375,12 +376,12 @@ public class ConfigurationWriter
                 // Write out the field name and descriptor.
                 String name       = classMemberSpecification.name;
                 String descriptor = classMemberSpecification.descriptor;
-                
+
                 if (name == null)
                 {
                     name = ConfigurationConstants.ANY_CLASS_MEMBER_KEYWORD;
                 }
-    
+
                 writer.print(descriptor != null ?
                     ClassUtil.externalFullFieldDescription(0,
                                                            name,
@@ -413,12 +414,12 @@ public class ConfigurationWriter
                 // Write out the method name and descriptor.
                 String name       = classMemberSpecification.name;
                 String descriptor = classMemberSpecification.descriptor;
-                
+
                 if (name == null)
                 {
                     name = ConfigurationConstants.ANY_CLASS_MEMBER_KEYWORD;
                 }
-    
+
                 writer.print(descriptor != null ?
                     ClassUtil.externalFullMethodDescription(ClassConstants.INTERNAL_METHOD_NAME_INIT,
                                                             0,

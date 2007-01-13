@@ -1,8 +1,8 @@
-/* $Id: MethodPrivatizer.java,v 1.7 2005/07/31 18:50:05 eric Exp $
+/* $Id: MethodPrivatizer.java,v 1.7.2.2 2006/02/13 00:20:43 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -37,7 +37,7 @@ public class MethodPrivatizer
 {
     private MemberInfoVisitor extraMemberInfoVisitor;
 
-    
+
     /**
      * Creates a new MethodPrivatizer.
      */
@@ -46,7 +46,7 @@ public class MethodPrivatizer
         this(null);
     }
 
-    
+
     /**
      * Creates a new MethodPrivatizer.
      * @param extraMemberInfoVisitor an optional extra visitor for all privatized
@@ -57,7 +57,7 @@ public class MethodPrivatizer
         this.extraMemberInfoVisitor = extraMemberInfoVisitor;
     }
 
-        
+
     // Implementations for MemberInfoVisitor.
 
     public void visitProgramFieldInfo(ProgramClassFile programClassFile, ProgramFieldInfo programFieldInfo) {}

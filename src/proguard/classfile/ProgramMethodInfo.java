@@ -1,9 +1,9 @@
-/* $Id: ProgramMethodInfo.java,v 1.19 2005/06/11 13:21:35 eric Exp $
+/* $Id: ProgramMethodInfo.java,v 1.19.2.2 2006/02/08 00:04:25 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
  * Copyright (c) 1999      Mark Welsh (markw@retrologic.com)
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -77,6 +77,8 @@ public class ProgramMethodInfo extends ProgramMemberInfo implements MethodInfo
         }
     }
 
+
+    // Implementations for MemberInfo.
 
     public void referencedClassesAccept(ClassFileVisitor classFileVisitor)
     {
