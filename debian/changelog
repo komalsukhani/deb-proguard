@@ -1,3 +1,12 @@
+proguard (3.9-1) unstable; urgency=low
+
+  * New upstream release
+  * Bump standard version to 3.7.2.
+  * Add ant task jar file.  Closes: #423009
+  * Fix file names in jar files. Closes: #435808
+
+ -- Sam Clegg <samo@debian.org>  Mon, 06 Aug 2007 10:34:24 +0100
+
 proguard (3.7-1) unstable; urgency=low
 
   * New upstream release

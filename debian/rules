@@ -8,17 +8,19 @@ include /usr/share/cdbs/1/rules/debhelper.mk
 
 JAVA_COMPILER = jikes-classpath +E +Z0
 JAR = jar
+ANTJAR = /usr/share/ant/lib/ant.jar
 
 build:
 	mkdir -p build
 	mkdir -p lib
-	${JAVA_COMPILER} -d build/proguard -sourcepath src src/proguard/ProGuard.java
 	${JAVA_COMPILER} -d build/retrace -sourcepath src src/proguard/retrace/ReTrace.java
+	${JAVA_COMPILER} -d build/proguard -sourcepath src src/proguard/ProGuard.java
 	${JAVA_COMPILER} -d build/proguardgui -cp build/proguard -sourcepath src src/proguard/gui/ProGuardGUI.java
-	${JAVA_COMPILER} -cp /usr/lib/java/ant-1.6.jar -d build -sourcepath src src/proguard/gui/ProGuardGUI.java
-	${JAR} cfm lib/proguard.jar proguard.manifest -C build proguard
-	${JAR} cfm lib/proguardgui.jar proguardgui.manifest -C build/proguardgui .
+	${JAVA_COMPILER} -d build/proguardtask -sourcepath src -cp ${ANTJAR} src/proguard/ant/ProGuardTask.java src/proguard/ProGuard.java
+	${JAR} cfm lib/proguard.jar proguard.manifest -C build/proguard proguard
+	${JAR} cfm lib/proguardgui.jar proguardgui.manifest -C build/proguardgui proguard
 	cd src && ${JAR} uf ../lib/proguardgui.jar proguard/gui/vtitle.gif proguard/gui/arrow.gif proguard/gui/default.pro proguard/gui/GUIResources.properties proguard/gui/boilerplate.pro
+	cp lib/proguard.jar lib/ant-proguard.jar
 
 clean::
 	rm -rf build/
