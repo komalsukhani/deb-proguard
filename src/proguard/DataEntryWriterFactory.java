@@ -1,6 +1,6 @@
-/* $Id: DataEntryWriterFactory.java,v 1.4.2.2 2007/01/18 21:31:51 eric Exp $
- *
- * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
+/*
+ * ProGuard -- shrinking, optimization, obfuscation, and preverification
+ *             of Java bytecode.
  *
  * Copyright (c) 2002-2007 Eric Lafortune (eric@graphics.cornell.edu)
  *
@@ -22,9 +22,6 @@ package proguard;
 
 import proguard.io.*;
 import proguard.util.*;
-
-import java.io.*;
-
 
 /**
  * This class can create DataEntryWriter instances based on class paths. The
@@ -67,10 +64,10 @@ public class DataEntryWriterFactory
                                                               DataEntryWriter alternativeWriter)
     {
         String entryName = classPathEntry.getName();
-        boolean isJar = entryName.endsWith(".jar");
-        boolean isWar = entryName.endsWith(".war");
-        boolean isEar = entryName.endsWith(".ear");
-        boolean isZip = entryName.endsWith(".zip");
+        boolean isJar = endsWithIgnoreCase(entryName, ".jar");
+        boolean isWar = endsWithIgnoreCase(entryName, ".war");
+        boolean isEar = endsWithIgnoreCase(entryName, ".ear");
+        boolean isZip = endsWithIgnoreCase(entryName, ".zip");
 
         String filter    = classPathEntry.getFilter();
         String jarFilter = classPathEntry.getJarFilter();
@@ -81,7 +78,7 @@ public class DataEntryWriterFactory
         System.out.println("Preparing output " +
                            (isJar ? "jar" :
                             isWar ? "war" :
-                            isWar ? "ear" :
+                            isEar ? "ear" :
                             isZip ? "zip" :
                                     "directory") +
                            " [" + entryName + "]" +
@@ -107,7 +104,7 @@ public class DataEntryWriterFactory
         writer = filter != null?
             new FilteredDataEntryWriter(
             new DataEntryNameFilter(
-            new FileNameListMatcher(filter)),
+            new ListParser(new FileNameParser()).parse(filter)),
                 writer) :
             writer;
 
@@ -130,14 +127,14 @@ public class DataEntryWriterFactory
         // Zip up jars, if necessary.
         DataEntryWriter jarWriter = dontWrap ?
             (DataEntryWriter)new ParentDataEntryWriter(writer) :
-            (DataEntryWriter)new JarWriter(writer, null, ProGuard.VERSION);
+            (DataEntryWriter)new JarWriter(writer);
 
         // Add a filter, if specified.
         DataEntryWriter filteredJarWriter = jarFilter != null?
             new FilteredDataEntryWriter(
             new DataEntryParentFilter(
             new DataEntryNameFilter(
-            new FileNameListMatcher(jarFilter))),
+            new ListParser(new FileNameParser()).parse(jarFilter))),
                  jarWriter) :
             jarWriter;
 
@@ -148,5 +145,18 @@ public class DataEntryWriterFactory
                new ExtensionMatcher(jarExtension))),
                    filteredJarWriter,
                    isJar ? jarWriter : writer);
+    }
+
+
+    /**
+     * Returns whether the given string ends with the given suffix, ignoring its
+     * case.
+     */
+    private static boolean endsWithIgnoreCase(String string, String suffix)
+    {
+        int stringLength = string.length();
+        int suffixLength = suffix.length();
+
+        return string.regionMatches(true, stringLength - suffixLength, suffix, 0, suffixLength);
     }
 }

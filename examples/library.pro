@@ -20,7 +20,8 @@
 
 -printmapping out.map
 -renamesourcefileattribute SourceFile
--keepattributes InnerClasses,SourceFile,LineNumberTable,Deprecated
+-keepattributes Exceptions,InnerClasses,Signature,Deprecated,
+                SourceFile,LineNumberTable,EnclosingMethod
 
 # Preserve all annotations.
 
@@ -62,6 +63,7 @@
 
 -keepclassmembers class * implements java.io.Serializable {
     static final long serialVersionUID;
+    static final java.io.ObjectStreamField[] serialPersistentFields;
     private void writeObject(java.io.ObjectOutputStream);
     private void readObject(java.io.ObjectInputStream);
     java.lang.Object writeReplace();
