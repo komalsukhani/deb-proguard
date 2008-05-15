@@ -1,3 +1,11 @@
+proguard (4.2-1) unstable; urgency=low
+
+  * New upstream release
+  * Fix build of ant task (Closes: #459829)
+    Thanks to Hans van Kranenburg <debian@knorrie.org>
+
+ -- Sam Clegg <samo@debian.org>  Thu, 15 May 2008 10:39:48 +0100
+
 proguard (4.1-1) unstable; urgency=low
 
   * New upstream release
