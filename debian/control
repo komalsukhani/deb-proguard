@@ -2,8 +2,8 @@ Source: proguard
 Section: devel
 Priority: optional
 Maintainer: Sam Clegg <samo@debian.org>
-Build-Depends: debhelper (>= 4.1.0), cdbs, jikes-classpath, ant, fastjar
-Standards-Version: 3.7.3
+Build-Depends: debhelper (>= 7.0.15), cdbs, gcj-4.3, ant, fastjar
+Standards-Version: 3.8.1
 
 Package: proguard
 Architecture: all
