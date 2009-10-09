@@ -1,3 +1,36 @@
+proguard (4.4-1) unstable; urgency=low
+
+  [ Onkar Shinde ]
+  * Merge from Ubuntu. (Closes: #534029, #548810)
+
+  [ Sam Clegg ]
+  * Thanks Onkar for the above fixes!
+  * New upstream release
+
+ -- Sam Clegg <samo@debian.org>  Fri, 09 Oct 2009 16:17:49 -0700
+
+proguard (4.3-1ubuntu1) karmic; urgency=low
+
+  * Use upstream ant build script. Fixes FTBFS.
+  * debian/control
+    - Add build dependency default-jdk. Remove gcj-4.3, fastjar.
+    - Set runtime dependency to 'default-jre | java2-runtime'.
+    - Update standard version to 3.8.3. No change needed.
+  * debian/rules
+    - Refresh to use upstream ant build script with help of cdbs ant class.
+  * debian/install
+    - Remove ant-proguard.jar. Add retrace.jar
+  * debian/README.Debian
+    - Add notes about using ant task.
+  * debian/links
+    - Remove. Explained in README.Debian.
+  * debian/*.manifest
+    - Delete. Not needed anymore.
+  * debian/watch
+    - User better regular expression.
+
+ -- Onkar Shinde <onkarshinde@ubuntu.com>  Fri, 04 Sep 2009 09:50:26 +0530
+
 proguard (4.3-1) unstable; urgency=low
 
   * New upstream release

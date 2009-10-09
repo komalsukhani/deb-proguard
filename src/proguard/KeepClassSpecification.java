@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2008 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2009 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -21,12 +21,11 @@
 package proguard;
 
 /**
- * This class stores a specification of keep option, with a purpose and a class
- * specification.
+ * This class represents a keep option with class specification.
  *
  * @author Eric Lafortune
  */
-public class KeepSpecification extends ClassSpecification
+public class KeepClassSpecification extends ClassSpecification
 {
     public final boolean markClasses;
     public final boolean markConditionally;
@@ -36,7 +35,7 @@ public class KeepSpecification extends ClassSpecification
 
 
     /**
-     * Creates a new KeepSpecification for all possible classes.
+     * Creates a new KeepClassSpecification for all possible classes.
      * @param markClasses        specifies whether to mark the classes.
      *                           If false, only class members are marked.
      *                           If true, the classes are marked as well.
@@ -48,11 +47,11 @@ public class KeepSpecification extends ClassSpecification
      * @param allowOptimization  specifies whether optimization is allowed.
      * @param allowObfuscation   specifies whether obfuscation is allowed.
      */
-    public KeepSpecification(boolean            markClasses,
-                             boolean            markConditionally,
-                             boolean            allowShrinking,
-                             boolean            allowOptimization,
-                             boolean            allowObfuscation)
+    public KeepClassSpecification(boolean markClasses,
+                                  boolean markConditionally,
+                                  boolean allowShrinking,
+                                  boolean allowOptimization,
+                                  boolean allowObfuscation)
     {
         this.markClasses       = markClasses;
         this.markConditionally = markConditionally;
@@ -63,7 +62,7 @@ public class KeepSpecification extends ClassSpecification
 
 
     /**
-     * Creates a new KeepSpecification.
+     * Creates a new KeepClassSpecification.
      * @param markClasses        specifies whether to mark the classes.
      *                           If false, only class members are marked.
      *                           If true, the classes are marked as well.
@@ -76,12 +75,12 @@ public class KeepSpecification extends ClassSpecification
      * @param allowObfuscation   specifies whether obfuscation is allowed.
      * @param classSpecification the specification of classes and class members.
      */
-    public KeepSpecification(boolean            markClasses,
-                             boolean            markConditionally,
-                             boolean            allowShrinking,
-                             boolean            allowOptimization,
-                             boolean            allowObfuscation,
-                             ClassSpecification classSpecification)
+    public KeepClassSpecification(boolean            markClasses,
+                                  boolean            markConditionally,
+                                  boolean            allowShrinking,
+                                  boolean            allowOptimization,
+                                  boolean            allowObfuscation,
+                                  ClassSpecification classSpecification)
     {
         super(classSpecification);
 
@@ -103,7 +102,7 @@ public class KeepSpecification extends ClassSpecification
             return false;
         }
 
-        KeepSpecification other = (KeepSpecification)object;
+        KeepClassSpecification other = (KeepClassSpecification)object;
         return
             this.markClasses       == other.markClasses       &&
             this.markConditionally == other.markConditionally &&

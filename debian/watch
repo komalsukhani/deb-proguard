@@ -1,3 +1,3 @@
 version=3
 
-http://sf.net/proguard/proguard([0-9.]*)\.tar\.gz
+http://sf.net/proguard/proguard([\d\.]+)\.tar\.gz

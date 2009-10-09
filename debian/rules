@@ -3,26 +3,10 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-include /usr/share/cdbs/1/rules/buildcore.mk
 include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/ant.mk
 
-JAVA_COMPILER=javac
-JAR=jar
-ANTJAR=/usr/share/ant/lib/ant.jar
-
-build:
-	mkdir -p build
-	mkdir -p lib
-	${JAVA_COMPILER} -d build/retrace -sourcepath src src/proguard/retrace/ReTrace.java
-	${JAVA_COMPILER} -d build/proguard -sourcepath src src/proguard/ProGuard.java
-	${JAVA_COMPILER} -d build/proguardgui -cp build/proguard -sourcepath src src/proguard/gui/ProGuardGUI.java
-	${JAVA_COMPILER} -d build/proguardtask -sourcepath src -cp ${ANTJAR} src/proguard/ant/ProGuardTask.java src/proguard/ProGuard.java
-	${JAR} cfm lib/proguard.jar proguard.manifest -C build/proguard proguard
-	${JAR} cfm lib/proguardgui.jar proguardgui.manifest -C build/proguardgui proguard
-	${JAR} cfm lib/ant-proguard.jar proguard.manifest -C build/proguardtask proguard
-	cd src && ${JAR} uf ../lib/proguardgui.jar proguard/gui/vtitle.gif proguard/gui/arrow.gif proguard/gui/default.pro proguard/gui/GUIResources.properties proguard/gui/boilerplate.pro
-	cd src && ${JAR} uf ../lib/ant-proguard.jar proguard/ant/task.properties
-
-clean::
-	rm -rf build/
-	rm -rf lib/
+JAVA_HOME		:= /usr/lib/jvm/default-java
+DEB_ANT_BUILDFILE	:= build/build.xml
+DEB_ANT_BUILD_TARGET	:= basic anttask
+DEB_ANT_ARGS		:= -Dant.build.javac.source=1.4 -Dant.build.javac.target=1.4
