@@ -1,3 +1,0 @@
-#!/bin/sh
-
-exec java -Xss300000 -cp /usr/share/java/proguard.jar:/usr/share/java/proguardgui.jar proguard.gui.ProGuardGUI "$@"

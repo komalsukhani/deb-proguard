@@ -1,3 +1,9 @@
+proguard (4.4-2) unstable; urgency=low
+
+  * update to source format 3.0 (quilt)
+
+ -- Sam Clegg <samo@debian.org>  Mon, 30 Nov 2009 10:29:57 -0800
+
 proguard (4.4-1) unstable; urgency=low
 
   [ Onkar Shinde ]
