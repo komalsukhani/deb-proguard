@@ -3,7 +3,7 @@ Section: devel
 Priority: optional
 Maintainer: Sam Clegg <samo@debian.org>
 Build-Depends: debhelper (>= 7.0.15), cdbs, default-jdk, ant
-Standards-Version: 3.8.3
+Standards-Version: 3.9.4
 
 Package: proguard
 Architecture: all

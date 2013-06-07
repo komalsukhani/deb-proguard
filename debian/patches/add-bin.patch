@@ -1,0 +1,18 @@
+Description: Creates proguard and proguardgui shell scripts
+ This patch adds proguard and proguardgui shell scripts for starting up
+ proguard.
+Forwarded: not-needed
+Last-Update: 2012-11-07
+
+--- /dev/null
++++ proguard-4.8/proguard
+@@ -0,0 +1,3 @@
++#!/bin/sh
++
++exec java -Xss300000 -jar /usr/share/java/proguard.jar "$@"
+--- /dev/null
++++ proguard-4.8/proguardgui
+@@ -0,0 +1,3 @@
++#!/bin/sh
++
++exec java -Xss300000 -cp /usr/share/java/proguard.jar:/usr/share/java/proguardgui.jar proguard.gui.ProGuardGUI "$@"
