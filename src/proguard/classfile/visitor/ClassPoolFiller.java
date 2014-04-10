@@ -1,8 +1,8 @@
-/* $Id: ClassPoolFiller.java,v 1.9 2005/06/11 13:13:15 eric Exp $
+/* $Id: ClassPoolFiller.java,v 1.9.2.3 2006/11/26 15:29:20 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -21,7 +21,7 @@
 package proguard.classfile.visitor;
 
 import proguard.classfile.*;
-import proguard.classfile.util.ClassUtil;
+import proguard.classfile.util.*;
 
 
 /**
@@ -33,14 +33,14 @@ import proguard.classfile.util.ClassUtil;
 public class ClassPoolFiller implements ClassFileVisitor
 {
     private ClassPool classPool;
-    private boolean   note;
 
 
-    public ClassPoolFiller(ClassPool classPool,
-                           boolean   note)
+    /**
+     * Creates a new ClassPoolFiller.
+     */
+    public ClassPoolFiller(ClassPool classPool)
     {
         this.classPool = classPool;
-        this.note      = note;
     }
 
 
@@ -48,22 +48,12 @@ public class ClassPoolFiller implements ClassFileVisitor
 
     public void visitProgramClassFile(ProgramClassFile programClassFile)
     {
-        ClassFile previousClassFile = classPool.addClass(programClassFile);
-        if (previousClassFile != null &&
-            note)
-        {
-            System.err.println("Note: duplicate definition of program class [" + ClassUtil.externalClassName(programClassFile.getName()) + "]");
-        }
+        classPool.addClass(programClassFile);
     }
 
 
     public void visitLibraryClassFile(LibraryClassFile libraryClassFile)
     {
-        ClassFile previousClassFile = classPool.addClass(libraryClassFile);
-        if (previousClassFile != null &&
-            note)
-        {
-            System.err.println("Note: duplicate definition of library class [" + ClassUtil.externalClassName(libraryClassFile.getName()) + "]");
-        }
+        classPool.addClass(libraryClassFile);
     }
 }

@@ -1,8 +1,8 @@
-/* $Id: ConfigurationParser.java,v 1.25 2005/08/21 20:25:33 eric Exp $
+/* $Id: ConfigurationParser.java,v 1.26.2.4 2006/10/18 21:12:47 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -134,6 +134,7 @@ public class ConfigurationParser
             else if (ConfigurationConstants.APPLY_MAPPING_OPTION                             .startsWith(nextWord)) configuration.applyMapping                     = parseFile();
             else if (ConfigurationConstants.OBFUSCATION_DICTIONARY_OPTION                    .startsWith(nextWord)) configuration.obfuscationDictionary            = parseFile();
             else if (ConfigurationConstants.OVERLOAD_AGGRESSIVELY_OPTION                     .startsWith(nextWord)) configuration.overloadAggressively             = parseNoArgument(true);
+            else if (ConfigurationConstants.USE_UNIQUE_CLASS_MEMBER_NAMES_OPTION             .startsWith(nextWord)) configuration.useUniqueClassMemberNames        = parseNoArgument(true);
             else if (ConfigurationConstants.DEFAULT_PACKAGE_OPTION                           .startsWith(nextWord)) configuration.defaultPackage                   = ClassUtil.internalClassName(parseOptionalArgument());
             else if (ConfigurationConstants.DONT_USE_MIXED_CASE_CLASS_NAMES_OPTION           .startsWith(nextWord)) configuration.useMixedCaseClassNames           = parseNoArgument(false);
             else if (ConfigurationConstants.KEEP_ATTRIBUTES_OPTION                           .startsWith(nextWord)) configuration.keepAttributes                   = parseKeepAttributesArguments(configuration.keepAttributes);
@@ -146,7 +147,7 @@ public class ConfigurationParser
             else if (ConfigurationConstants.DUMP_OPTION                                      .startsWith(nextWord)) configuration.dump                             = parseOptionalFile();
             else
             {
-                throw new ParseException("Unknown configuration " + reader.locationDescription());
+                throw new ParseException("Unknown option " + reader.locationDescription());
             }
         }
     }
@@ -801,7 +802,7 @@ public class ConfigurationParser
                 // Read a comma (or a different word).
                 readNextWord();
             }
-            
+
             if (!ConfigurationConstants.ARGUMENT_SEPARATOR_KEYWORD.equals(nextWord))
             {
                 break;
@@ -954,6 +955,7 @@ public class ConfigurationParser
                   c == ']' ||
                   c == '<' ||
                   c == '>' ||
+                  c == '-' ||
                   c == '!' ||
                   c == '*' ||
                   c == '?' ||

@@ -1,9 +1,9 @@
-/* $Id: SignatureAttrInfo.java,v 1.3 2005/06/11 13:13:15 eric Exp $
+/* $Id: SignatureAttrInfo.java,v 1.3.2.2 2006/02/08 00:04:25 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
  * Copyright (c) 1999      Mark Welsh (markw@retrologic.com)
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +22,7 @@
 package proguard.classfile.attribute;
 
 import proguard.classfile.*;
+import proguard.classfile.visitor.ClassFileVisitor;
 
 import java.io.*;
 
@@ -48,6 +49,25 @@ public class SignatureAttrInfo extends AttrInfo
 
     protected SignatureAttrInfo()
     {
+    }
+
+
+    /**
+     * Lets the ClassFile objects referenced in the signature string
+     * accept the given visitor.
+     */
+    public void referencedClassesAccept(ClassFileVisitor classFileVisitor)
+    {
+        if (referencedClassFiles != null)
+        {
+            for (int i = 0; i < referencedClassFiles.length; i++)
+            {
+                if (referencedClassFiles[i] != null)
+                {
+                    referencedClassFiles[i].accept(classFileVisitor);
+                }
+            }
+        }
     }
 
 

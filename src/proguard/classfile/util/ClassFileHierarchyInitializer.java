@@ -1,8 +1,8 @@
-/* $Id: ClassFileHierarchyInitializer.java,v 1.12 2005/06/25 22:07:51 eric Exp $
+/* $Id: ClassFileHierarchyInitializer.java,v 1.12.2.2 2006/11/25 16:56:11 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -22,7 +22,6 @@ package proguard.classfile.util;
 
 import proguard.classfile.*;
 import proguard.classfile.visitor.*;
-
 
 /**
  * This ClassFileVisitor initializes the class hierarchy of all class files that
@@ -48,47 +47,23 @@ public class ClassFileHierarchyInitializer
     // A visitor info flag to indicate the class file has been initialized.
     private static final Object INITIALIZED = new Object();
 
-    private ClassPool programClassPool;
-    private ClassPool libraryClassPool;
-    private boolean   warn;
-
-    // Counter for warnings.
-    private int warningCount;
+    private ClassPool      programClassPool;
+    private ClassPool      libraryClassPool;
+    private WarningPrinter warningPrinter;
 
 
     /**
-     * Creates a new ClassFileReferenceInitializer that initializes the hierarchy
-     * of all visited class files, printing warnings if some classes can't be found.
+     * Creates a new ClassFileReferenceInitializer that initializes the
+     * hierarchy of all visited class files, optionally printing warnings if
+     * some classes can't be found.
      */
-    public ClassFileHierarchyInitializer(ClassPool programClassPool,
-                                         ClassPool libraryClassPool)
-    {
-        this(programClassPool, libraryClassPool, true);
-    }
-
-
-    /**
-     * Creates a new ClassFileReferenceInitializer that initializes the hierarchy
-     * of all visited class files, optionally printing warnings if some classes
-     * can't be found.
-     */
-    public ClassFileHierarchyInitializer(ClassPool programClassPool,
-                                         ClassPool libraryClassPool,
-                                         boolean   warn)
+    public ClassFileHierarchyInitializer(ClassPool      programClassPool,
+                                         ClassPool      libraryClassPool,
+                                         WarningPrinter warningPrinter)
     {
         this.programClassPool = programClassPool;
         this.libraryClassPool = libraryClassPool;
-        this.warn             = warn;
-    }
-
-
-    /**
-     * Returns the number of warnings printed about unresolved references to
-     * superclasses or interfaces.
-     */
-    public int getWarningCount()
-    {
-        return warningCount;
+        this.warningPrinter   = warningPrinter;
     }
 
 
@@ -269,14 +244,13 @@ public class ClassFileHierarchyInitializer
         {
             classFile.addSubClass(subclass);
         }
-        else if (warn)
+        else if (warningPrinter != null)
         {
             // We didn't find the superclass or interface. Print a warning.
-            warningCount++;
-            System.err.println("Warning: " +
-                               ClassUtil.externalClassName(subclass.getName()) +
-                               ": can't find superclass or interface " +
-                               ClassUtil.externalClassName(className));
+            warningPrinter.print("Warning: " +
+                                 ClassUtil.externalClassName(subclass.getName()) +
+                                 ": can't find superclass or interface " +
+                                 ClassUtil.externalClassName(className));
         }
     }
 }

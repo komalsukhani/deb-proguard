@@ -1,8 +1,8 @@
-/* $Id: GotoCommonCodeReplacer.java,v 1.2 2005/10/04 21:00:11 eric Exp $
+/* $Id: GotoCommonCodeReplacer.java,v 1.2.2.5 2006/05/23 21:14:32 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -96,7 +96,7 @@ public class GotoCommonCodeReplacer implements InstructionVisitor
         {
             int branchOffset = branchInstruction.branchOffset;
             int targetOffset = offset + branchOffset;
-            
+
             // Get the number of common bytes.
             int commonCount = commonByteCodeCount(codeAttrInfo, offset, targetOffset);
 
@@ -117,7 +117,7 @@ public class GotoCommonCodeReplacer implements InstructionVisitor
                         codeAttrInfoEditor.replaceInstruction(     deleteOffset, null);
                         codeAttrInfoEditor.insertBeforeInstruction(deleteOffset, null);
                         codeAttrInfoEditor.insertAfterInstruction( deleteOffset, null);
-                        
+
                         codeAttrInfoEditor.deleteInstruction(deleteOffset);
                     }
                 }
@@ -131,7 +131,7 @@ public class GotoCommonCodeReplacer implements InstructionVisitor
                     codeAttrInfoEditor.replaceInstruction(offset,
                                                           newGotoInstruction);
                 }
-                
+
                 // Visit the instruction, if required.
                 if (extraInstructionVisitor != null)
                 {
@@ -141,12 +141,12 @@ public class GotoCommonCodeReplacer implements InstructionVisitor
         }
     }
 
-    
+
     // Small utility methods.
 
     /**
      * Returns the number of common bytes preceding the given offsets,
-     * avoiding branches and exception blocks. 
+     * avoiding branches and exception blocks.
      */
     private int commonByteCodeCount(CodeAttrInfo codeAttrInfo, int offset1, int offset2)
     {
@@ -182,30 +182,55 @@ public class GotoCommonCodeReplacer implements InstructionVisitor
                 branchTargetFinder.isInstruction(newOffset2))
             {
                 // Are the offsets involved in some branches?
-                // Note that the preverifier also doesn't like
-                // initializer invocations to be moved around.
-                if (branchTargetFinder.isBranchOrigin(newOffset1)         ||
-                    branchTargetFinder.isBranchTarget(newOffset1)         ||
-                    branchTargetFinder.isExceptionStart(newOffset1)       ||
-                    branchTargetFinder.isExceptionEnd(newOffset1)         ||
-                    branchTargetFinder.isInitializer(newOffset1)          ||
+                // Note that the preverifier doesn't like initializer
+                // invocations to be moved around.
+                // Also note that the preverifier doesn't like pop instructions
+                // that work on different operands.
+                if (branchTargetFinder.isBranchOrigin(newOffset1)   ||
+                    branchTargetFinder.isBranchTarget(newOffset1)   ||
+                    branchTargetFinder.isExceptionStart(newOffset1) ||
+                    branchTargetFinder.isExceptionEnd(newOffset1)   ||
+                    branchTargetFinder.isInitializer(newOffset1)    ||
                     branchTargetFinder.isExceptionStart(newOffset2) ||
-                    branchTargetFinder.isExceptionEnd(newOffset2))
+                    branchTargetFinder.isExceptionEnd(newOffset2)   ||
+                    isPop(code[newOffset1]))
                 {
                     break;
                 }
 
-                successfulDelta = delta;
+                // Make sure the new branch target was a branch target before,
+                // in order not to introduce new entries in the stack map table.
+                if (branchTargetFinder.isBranchTarget(newOffset2))
+                {
+                    successfulDelta = delta;
+                }
+
+                if (branchTargetFinder.isBranchTarget(newOffset1))
+                {
+                    break;
+                }
             }
         }
-        
+
         return successfulDelta;
     }
 
-    
+
+    /**
+     * Returns whether the given opcode represents a pop instruction that must
+     * get a consistent type (pop, pop2, arraylength).
+     */
+    private boolean isPop(byte opcode)
+    {
+        return opcode == InstructionConstants.OP_POP  ||
+               opcode == InstructionConstants.OP_POP2 ||
+               opcode == InstructionConstants.OP_ARRAYLENGTH;
+    }
+
+
     /**
      * Returns the whether there is a boundary of an exception block between
-     * the given offsets (including both). 
+     * the given offsets (including both).
      */
     private boolean exceptionBoundary(CodeAttrInfo codeAttrInfo, int offset1, int offset2)
     {
@@ -216,7 +241,7 @@ public class GotoCommonCodeReplacer implements InstructionVisitor
             offset1 = offset2;
             offset2 = offset;
         }
-        
+
         // Check if there is a boundary of an exception block.
         for (int offset = offset1; offset <= offset2; offset++)
         {
@@ -226,7 +251,7 @@ public class GotoCommonCodeReplacer implements InstructionVisitor
                 return true;
             }
         }
-        
+
         return false;
     }
 }

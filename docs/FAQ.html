@@ -19,7 +19,8 @@
     support?</a>
 <li><a href="#commercial">Can I use <b>ProGuard</b> to process my commercial
     application?</a>
-<li><a href="#jdk1.4">Does <b>ProGuard</b> work with JDK1.4? JDK5.0?</a>
+<li><a href="#jdk1.4">Does <b>ProGuard</b> work with JDK1.4? JDK5.0?
+    JDK6.0?</a>
 <li><a href="#j2me">Does <b>ProGuard</b> work with J2ME?</a>
 <li><a href="#ant">Does <b>ProGuard</b> have support for Ant?</a>
 <li><a href="#gui">Does <b>ProGuard</b> come with a GUI?</a>
@@ -85,8 +86,13 @@ the virtual machine on which the code is executed. Simple virtual machines may
 benefit more than advanced virtual machines with sophisticated JIT compilers.
 At the very least, your bytecode may become a bit smaller.
 <p>
-A notable optimization that isn't supported yet is the inlining of constant
-fields that are not marked as final.
+Some notable optimizations that aren't supported yet:
+<ul>
+<li>Inlining of constant fields that are not marked as final.
+<li>Inlining of other methods than getters and setters.
+<li>Moving constant expressions out of loops.
+<li>Optimizations that require escape analysis.
+</ul>
 
 <a name="commercial">&nbsp;</a>
 <h3>Can I use <b>ProGuard</b> to process my commercial application?</h3>
@@ -95,12 +101,15 @@ doesn't affect the programs that you process. Your code remains yours, and
 its license can remain the same.
 
 <a name="jdk1.4">&nbsp;</a>
-<h3>Does <b>ProGuard</b> work with JDK1.4? JDK5.0?</h3>
-Yes. Class files compiled with JDK1.4 are targeted at JRE1.2 by default. Class
-files compiled with JDK5.0 may have additional attributes for supporting
-generics and annotations. The compiled class files have slightly different
-structures from older class files. <b>ProGuard</b> handles all versions
-correctly.
+<h3>Does <b>ProGuard</b> work with JDK1.4? JDK5.0? JDK6.0?</h3>
+Yes, <b>ProGuard</b> supports all JDKs up to and including 6.0. Class files
+compiled with JDK1.4 are targeted at JRE1.2 by default. Class files compiled
+with JDK5.0 may have additional attributes for generics and annotations. The
+compiled class files have slightly different structures from older class
+files. <b>ProGuard</b> handles all versions correctly.
+<p>
+The upcoming <b>ProGuard 4.0</b> supports preverification, which improves the
+start-up performance in JDK6.0.
 
 <a name="j2me">&nbsp;</a>
 <h3>Does <b>ProGuard</b> work with J2ME?</h3>
@@ -196,7 +205,7 @@ Manual</a> for more details.
 
 <hr>
 <address>
-Copyright &copy; 2002-2005
+Copyright &copy; 2002-2006
 <a href="http://www.graphics.cornell.edu/~eric/">Eric Lafortune</a>.
 </address>
 </body>

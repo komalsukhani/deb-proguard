@@ -1,9 +1,9 @@
-/* $Id: ClassPool.java,v 1.18 2005/06/11 13:13:15 eric Exp $
+/* $Id: ClassPool.java,v 1.18.2.6 2006/11/26 15:29:20 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
  * Copyright (c) 1999      Mark Welsh (markw@retrologic.com)
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -38,22 +38,20 @@ public class ClassPool
 
 
     /**
-     * Adds the given ClassFile to the class pool. If a class file of the same
-     * name is already present, it is left unchanged and the old class file is
-     * returned.
+     * Clears the class pool.
      */
-    public ClassFile addClass(ClassFile classFile)
+    public void clear()
     {
-        String name = classFile.getName();
+        classFiles.clear();
+    }
 
-        ClassFile previousClassFile = (ClassFile)classFiles.put(name, classFile);
-        if (previousClassFile != null)
-        {
-            // We'll put the original one back.
-            classFiles.put(name, previousClassFile);
-        }
 
-        return previousClassFile;
+    /**
+     * Adds the given ClassFile to the class pool.
+     */
+    public void addClass(ClassFile classFile)
+    {
+        classFiles.put(classFile.getName(), classFile);
     }
 
 
@@ -67,23 +65,22 @@ public class ClassPool
 
 
     /**
-     * Returns a ClassFile from the class pool based on its name. Returns
+     * Returns a Clazz from the class pool based on its name. Returns
      * <code>null</code> if the class with the given name is not in the class
-     * pool. Returns the base class if the class name is an array type, and the
-     * <code>java.lang.Object</code> class if that base class is a primitive type.
+     * pool. Returns the base class if the class name is an array type.
      */
     public ClassFile getClass(String className)
     {
-        return (ClassFile)classFiles.get(ClassUtil.internalClassNameFromType(className));
+        return (ClassFile)classFiles.get(ClassUtil.internalClassNameFromClassType(className));
     }
 
 
     /**
-     * Returns an Iterator of all ClassFile objects in the class pool.
+     * Returns an Iterator of all class file names in the class pool.
      */
-    public Iterator elements()
+    public Iterator classNames()
     {
-        return classFiles.values().iterator();
+        return classFiles.keySet().iterator();
     }
 
 
@@ -111,18 +108,11 @@ public class ClassPool
      */
     public void classFilesAccept(ClassFileVisitor classFileVisitor)
     {
-        Iterator iterator = elements();
+        Iterator iterator = classFiles.values().iterator();
         while (iterator.hasNext())
         {
             ClassFile classFile = (ClassFile)iterator.next();
-try{
             classFile.accept(classFileVisitor);
-}catch (RuntimeException ex) {
-    System.out.println("Runtime exception while processing class file ["+classFile.getName()+"]");
-    throw ex;
-}catch (Error er) {
-    System.out.println("Runtime error while processing class file ["+classFile.getName()+"]");
-    throw er;}
         }
     }
 

@@ -1,8 +1,8 @@
-/* $Id: MethodInvocationFixer.java,v 1.4 2005/08/13 21:01:04 eric Exp $
+/* $Id: MethodInvocationFixer.java,v 1.4.2.2 2006/03/28 22:03:59 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -212,11 +212,19 @@ implements   InstructionVisitor,
 
     public void visitClassCpInfo(ClassFile classFile, ClassCpInfo classCpInfo)
     {
-        // Check if this class entry refers to an interface class.
-        ClassFile referencedClassFile = classCpInfo.referencedClassFile;
-        if (referencedClassFile != null)
+        // Check if this class entry is an array type.
+        if (ClassUtil.isInternalArrayType(classCpInfo.getName(classFile)))
         {
-            isInterfaceMethod = (referencedClassFile.getAccessFlags() & ClassConstants.INTERNAL_ACC_INTERFACE) != 0;
+            isInterfaceMethod = false;
+        }
+        else
+        {
+            // Check if this class entry refers to an interface class.
+            ClassFile referencedClassFile = classCpInfo.referencedClassFile;
+            if (referencedClassFile != null)
+            {
+                isInterfaceMethod = (referencedClassFile.getAccessFlags() & ClassConstants.INTERNAL_ACC_INTERFACE) != 0;
+            }
         }
     }
 

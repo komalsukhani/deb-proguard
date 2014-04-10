@@ -1,8 +1,8 @@
-/* $Id: GPL.java,v 1.5 2005/09/11 22:14:13 eric Exp $
+/* $Id: GPL.java,v 1.5.2.5 2006/12/11 20:23:22 eric Exp $
  *
- * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
+ * ProGuard -- shrinking, optimization, and obfuscation of Java bytecode.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -150,7 +150,7 @@ public class GPL
 
 
     /**
-     * Returns whether the given package name is has been granted an exception
+     * Returns whether the given package name has been granted an exception
      * against the GPL linking clause, by the copyright holder of ProGuard.
      * This method is not legally binding, but of course the actual license is.
      * Please contact the copyright holder if you would like an exception for
@@ -158,14 +158,17 @@ public class GPL
      */
     private static boolean isKnown(String packageName)
     {
-        return packageName.startsWith("java")                 ||
-               packageName.startsWith("proguard")             ||
-               packageName.startsWith("org.apache.tools.ant") ||
-               packageName.startsWith("org.eclipse")          ||
-               packageName.startsWith("org.netbeans")         ||
-               packageName.startsWith("com.sun.kvem")         ||
-               packageName.startsWith("jg.j2me")              ||
-               packageName.startsWith("jg.common");
+        return packageName.startsWith("java")                   ||
+               packageName.startsWith("sun.reflect")            ||
+               packageName.startsWith("proguard")               ||
+               packageName.startsWith("org.apache.tools.ant")   ||
+               packageName.startsWith("org.apache.tools.maven") ||
+               packageName.startsWith("org.eclipse")            ||
+               packageName.startsWith("org.netbeans")           ||
+               packageName.startsWith("com.sun.kvem")           ||
+               packageName.startsWith("jg.j2me")                ||
+               packageName.startsWith("jg.common")              ||
+               packageName.startsWith("jg.buildengine");
     }
 
 

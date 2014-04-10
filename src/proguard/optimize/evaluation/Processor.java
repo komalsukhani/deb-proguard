@@ -1,8 +1,8 @@
-/* $Id: Processor.java,v 1.13 2005/06/11 13:13:16 eric Exp $
+/* $Id: Processor.java,v 1.13.2.2 2006/04/01 12:40:37 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -758,23 +758,27 @@ implements   InstructionVisitor,
 
 
             case InstructionConstants.OP_IFICMPLT:
+                // Note that the stack entries are popped in reverse order.
                 branchUnit.branchConditionally(classFile, codeAttrInfo, offset, branchTarget,
-                    -stack.ipop().lessThan(stack.ipop()));
+                    stack.ipop().greaterThan(stack.ipop()));
                 break;
 
             case InstructionConstants.OP_IFICMPGE:
+                // Note that the stack entries are popped in reverse order.
                 branchUnit.branchConditionally(classFile, codeAttrInfo, offset, branchTarget,
-                    -stack.ipop().greaterThanOrEqual(stack.ipop()));
+                    stack.ipop().lessThanOrEqual(stack.ipop()));
                 break;
 
             case InstructionConstants.OP_IFICMPGT:
+                // Note that the stack entries are popped in reverse order.
                 branchUnit.branchConditionally(classFile, codeAttrInfo, offset, branchTarget,
-                    -stack.ipop().greaterThan(stack.ipop()));
+                    stack.ipop().lessThan(stack.ipop()));
                 break;
 
             case InstructionConstants.OP_IFICMPLE:
+                // Note that the stack entries are popped in reverse order.
                 branchUnit.branchConditionally(classFile, codeAttrInfo, offset, branchTarget,
-                    -stack.ipop().lessThanOrEqual(stack.ipop()));
+                    stack.ipop().greaterThanOrEqual(stack.ipop()));
                 break;
 
             case InstructionConstants.OP_IFACMPEQ:

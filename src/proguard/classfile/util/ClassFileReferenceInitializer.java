@@ -1,8 +1,8 @@
-/* $Id: ClassFileReferenceInitializer.java,v 1.31 2005/06/25 22:07:51 eric Exp $
+/* $Id: ClassFileReferenceInitializer.java,v 1.31.2.4 2006/11/25 16:56:11 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -24,7 +24,6 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.annotation.*;
 import proguard.classfile.visitor.*;
-
 
 /**
  * This ClassFileVisitor initializes the references of all class files that
@@ -58,47 +57,23 @@ public class ClassFileReferenceInitializer
 {
     private MemberFinder memberFinder = new MemberFinder();
 
-    private ClassPool programClassPool;
-    private ClassPool libraryClassPool;
-    private boolean   warn;
-
-    // Counter for warnings.
-    private int warningCount;
+    private ClassPool      programClassPool;
+    private ClassPool      libraryClassPool;
+    private WarningPrinter warningPrinter;
 
 
     /**
-     * Creates a new ClassFileReferenceInitializer that initializes the hierarchy
-     * of all visited class files, printing warnings if some classes can't be found.
+     * Creates a new ClassFileReferenceInitializer that initializes the
+     * references of all visited class files, optionally printing warnings if
+     * some classes can't be found.
      */
-    public ClassFileReferenceInitializer(ClassPool programClassPool,
-                                         ClassPool libraryClassPool)
-    {
-        this(programClassPool, libraryClassPool, true);
-    }
-
-
-    /**
-     * Creates a new ClassFileReferenceInitializer that initializes the hierarchy
-     * of all visited class files, optionally printing warnings if some classes
-     * can't be found.
-     */
-    public ClassFileReferenceInitializer(ClassPool programClassPool,
-                                         ClassPool libraryClassPool,
-                                         boolean   warn)
+    public ClassFileReferenceInitializer(ClassPool      programClassPool,
+                                         ClassPool      libraryClassPool,
+                                         WarningPrinter warningPrinter)
     {
         this.programClassPool = programClassPool;
         this.libraryClassPool = libraryClassPool;
-        this.warn             = warn;
-    }
-
-
-    /**
-     * Returns the number of warnings printed about unresolved references to
-     * class members in program class files.
-     */
-    public int getWarningCount()
-    {
-        return warningCount;
+        this.warningPrinter   = warningPrinter;
     }
 
 
@@ -207,24 +182,26 @@ public class ClassFileReferenceInitializer
 
             // See if we can find the referenced class member somewhere in the
             // hierarchy.
-            refCpInfo.referencedMemberInfo = memberFinder.findMember(referencedClassFile,
+            refCpInfo.referencedMemberInfo = memberFinder.findMember(classFile,
+                                                                     referencedClassFile,
                                                                      name,
                                                                      type,
                                                                      isFieldRef);
             refCpInfo.referencedClassFile  = memberFinder.correspondingClassFile();
 
-            if (warn && refCpInfo.referencedMemberInfo == null)
+            // Check if we haven't found the class member anywhere in the
+            // hierarchy.
+            if (refCpInfo.referencedMemberInfo == null &&
+                warningPrinter != null)
             {
-                // We've haven't found the class member anywhere in the hierarchy.
-                warningCount++;
-                System.err.println("Warning: " +
-                                   ClassUtil.externalClassName(classFile.getName()) +
-                                   ": can't find referenced " +
-                                   (isFieldRef ?
-                                    "field '"  + ClassUtil.externalFullFieldDescription(0, name, type) :
-                                    "method '" + ClassUtil.externalFullMethodDescription(className, 0, name, type)) +
-                                   "' in class " +
-                                   ClassUtil.externalClassName(className));
+                warningPrinter.print("Warning: " +
+                                     ClassUtil.externalClassName(classFile.getName()) +
+                                     ": can't find referenced " +
+                                     (isFieldRef ?
+                                         "field '"  + ClassUtil.externalFullFieldDescription(0, name, type) :
+                                         "method '" + ClassUtil.externalFullMethodDescription(className, 0, name, type)) +
+                                     "' in class " +
+                                     ClassUtil.externalClassName(className));
             }
         }
     }
@@ -260,13 +237,12 @@ public class ClassFileReferenceInitializer
         if (referencedClassFile == null)
         {
             // We couldn't find the enclosing class.
-            if (warn)
+            if (warningPrinter != null)
             {
-                warningCount++;
-                System.err.println("Warning: " +
-                                   ClassUtil.externalClassName(classFile.getName()) +
-                                   ": can't find enclosing class " +
-                                   ClassUtil.externalClassName(className));
+                warningPrinter.print("Warning: " +
+                                     ClassUtil.externalClassName(classFile.getName()) +
+                                     ": can't find enclosing class " +
+                                     ClassUtil.externalClassName(className));
             }
 
             return;
@@ -287,15 +263,14 @@ public class ClassFileReferenceInitializer
         if (referencedMethodInfo == null)
         {
             // We couldn't find the enclosing method.
-            if (warn)
+            if (warningPrinter != null)
             {
-                warningCount++;
-                System.err.println("Warning: " +
-                                   ClassUtil.externalClassName(classFile.getName()) +
-                                   ": can't find enclosing method '" +
-                                   ClassUtil.externalFullMethodDescription(className, 0, name, type) +
-                                   "' in class " +
-                                   ClassUtil.externalClassName(className));
+                warningPrinter.print("Warning: " +
+                                     ClassUtil.externalClassName(classFile.getName()) +
+                                     ": can't find enclosing method '" +
+                                     ClassUtil.externalFullMethodDescription(className, 0, name, type) +
+                                     "' in class " +
+                                     ClassUtil.externalClassName(className));
             }
 
             return;
@@ -458,8 +433,9 @@ public class ClassFileReferenceInitializer
             // (ignoring the descriptor).
             String name = classFile.getCpString(elementValue.u2elementName);
 
-            elementValue.referencedMethodInfo =
-                annotation.referencedClassFiles[0].findMethod(name, null);
+            ClassFile referencedClassFile = annotation.referencedClassFiles[0];
+            elementValue.referencedClassFile  = referencedClassFile;
+            elementValue.referencedMethodInfo = referencedClassFile.findMethod(name, null);
         }
     }
 

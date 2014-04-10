@@ -1,4 +1,4 @@
-/* $Id: KeepMarker.java,v 1.7 2005/08/13 20:57:55 eric Exp $
+/* $Id: KeepMarker.java,v 1.7.2.3 2006/06/07 22:36:52 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
@@ -48,7 +48,10 @@ public class KeepMarker
     }
 
 
-    public void visitLibraryClassFile(LibraryClassFile libraryClassFile) {}
+    public void visitLibraryClassFile(LibraryClassFile libraryClassFile)
+    {
+        markAsKept(libraryClassFile);
+    }
 
 
     // Implementations for MemberInfoVisitor.
@@ -56,23 +59,25 @@ public class KeepMarker
     public void visitProgramFieldInfo(ProgramClassFile programClassFile, ProgramFieldInfo programFieldInfo)
     {
         markAsKept(programFieldInfo);
-
-        // Mark the classes referenced in the descriptor string.
-        programFieldInfo.referencedClassesAccept(this);
     }
 
 
     public void visitProgramMethodInfo(ProgramClassFile programClassFile, ProgramMethodInfo programMethodInfo)
     {
-        markAsKept(MethodInfoLinker.lastMethodInfo(programMethodInfo));
-
-        // Mark the classes referenced in the descriptor string.
-        programMethodInfo.referencedClassesAccept(this);
+        markAsKept(MethodInfoLinker.lastMemberInfo(programMethodInfo));
     }
 
 
-    public void visitLibraryFieldInfo(LibraryClassFile libraryClassFile, LibraryFieldInfo libraryFieldInfo) {}
-    public void visitLibraryMethodInfo(LibraryClassFile libraryClassFile, LibraryMethodInfo libraryMethodInfo) {}
+    public void visitLibraryFieldInfo(LibraryClassFile libraryClassFile, LibraryFieldInfo libraryFieldInfo)
+    {
+        markAsKept(libraryFieldInfo);
+    }
+
+
+    public void visitLibraryMethodInfo(LibraryClassFile libraryClassFile, LibraryMethodInfo libraryMethodInfo)
+    {
+        markAsKept(MethodInfoLinker.lastMemberInfo(libraryMethodInfo));
+    }
 
 
     // Small utility methods.

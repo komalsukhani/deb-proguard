@@ -1,8 +1,8 @@
-/* $Id: ClassSpecification.java,v 1.4 2005/06/11 13:13:15 eric Exp $
+/* $Id: ClassSpecification.java,v 1.4.2.2 2006/04/09 08:55:53 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -85,11 +85,11 @@ public class ClassSpecification implements Cloneable
      *                                 specified class members are present.
      */
     public ClassSpecification(int     requiredSetAccessFlags,
-                               int     requiredUnsetAccessFlags,
-                               String  className,
-                               String  extendsClassName,
-                               boolean markClassFiles,
-                               boolean markConditionally)
+                              int     requiredUnsetAccessFlags,
+                              String  className,
+                              String  extendsClassName,
+                              boolean markClassFiles,
+                              boolean markConditionally)
     {
         this(requiredSetAccessFlags,
              requiredUnsetAccessFlags,
@@ -126,12 +126,12 @@ public class ClassSpecification implements Cloneable
      * @param comments                 provides optional comments on this option.
      */
     public ClassSpecification(int     requiredSetAccessFlags,
-                               int     requiredUnsetAccessFlags,
-                               String  className,
-                               String  extendsClassName,
-                               boolean markClassFiles,
-                               boolean markConditionally,
-                               String  comments)
+                              int     requiredUnsetAccessFlags,
+                              String  className,
+                              String  extendsClassName,
+                              boolean markClassFiles,
+                              boolean markConditionally,
+                              String  comments)
     {
         this.requiredSetAccessFlags   = requiredSetAccessFlags;
         this.requiredUnsetAccessFlags = requiredUnsetAccessFlags;

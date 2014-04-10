@@ -1,8 +1,8 @@
-/* $Id: ClassFileClassForNameReferenceInitializer.java,v 1.17 2005/07/17 14:47:15 eric Exp $
+/* $Id: ClassFileClassForNameReferenceInitializer.java,v 1.17.2.3 2006/11/25 16:56:11 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -48,11 +48,8 @@ public class ClassFileClassForNameReferenceInitializer
 {
     private ClassPool            programClassPool;
     private ClassPool            libraryClassPool;
-    private boolean              note;
+    private WarningPrinter       notePrinter;
     private ClassNameListMatcher noteExceptionMatcher;
-
-    // Counter for notes.
-    private int noteCount;
 
     // Fields to remember the previous StringCpInfo and MethodRefCpInfo objects
     // while visiting all instructions (to find Class.forName, class$, and
@@ -66,39 +63,19 @@ public class ClassFileClassForNameReferenceInitializer
 
 
     /**
-     * Creates a new ClassFileClassForNameReferenceInitializer that prints notes.
-     */
-    public ClassFileClassForNameReferenceInitializer(ClassPool programClassPool,
-                                                     ClassPool libraryClassPool)
-    {
-        this(programClassPool, libraryClassPool, true, null);
-    }
-
-
-    /**
      * Creates a new ClassFileClassForNameReferenceInitializer that optionally
      * prints notes, with optional class specifications for which never to
      * print notes.
      */
     public ClassFileClassForNameReferenceInitializer(ClassPool            programClassPool,
                                                      ClassPool            libraryClassPool,
-                                                     boolean              note,
+                                                     WarningPrinter       notePrinter,
                                                      ClassNameListMatcher noteExceptionMatcher)
     {
         this.programClassPool     = programClassPool;
         this.libraryClassPool     = libraryClassPool;
-        this.note                 = note;
+        this.notePrinter          = notePrinter;
         this.noteExceptionMatcher = noteExceptionMatcher;
-    }
-
-
-    /**
-     * Returns the number of notes printed about occurrences of
-     * '<code>(SomeClass)Class.forName(variable).newInstance()</code>'.
-     */
-    public int getNoteCount()
-    {
-        return noteCount;
     }
 
 
@@ -109,29 +86,29 @@ public class ClassFileClassForNameReferenceInitializer
         // Nothing interesting; just forget any stored indices.
         clearConstantPoolIndices();
     }
-    
-    
+
+
     public void visitBranchInstruction(ClassFile classFile, MethodInfo methodInfo, CodeAttrInfo codeAttrInfo, int offset, BranchInstruction branchInstruction)
     {
         // Nothing interesting; just forget any stored indices.
         clearConstantPoolIndices();
     }
-    
-    
+
+
     public void visitTableSwitchInstruction(ClassFile classFile, MethodInfo methodInfo, CodeAttrInfo codeAttrInfo, int offset, TableSwitchInstruction tableSwitchInstruction)
     {
         // Nothing interesting; just forget any stored indices.
         clearConstantPoolIndices();
     }
-    
-    
+
+
     public void visitLookUpSwitchInstruction(ClassFile classFile, MethodInfo methodInfo, CodeAttrInfo codeAttrInfo, int offset, LookUpSwitchInstruction lookUpSwitchInstruction)
     {
         // Nothing interesting; just forget any stored indices.
         clearConstantPoolIndices();
     }
-    
-    
+
+
     public void visitVariableInstruction(ClassFile classFile, MethodInfo methodInfo, CodeAttrInfo codeAttrInfo, int offset, VariableInstruction variableInstruction)
     {
 
@@ -281,22 +258,21 @@ public class ClassFileClassForNameReferenceInitializer
      */
     public void visitClassCpInfo(ClassFile classFile, ClassCpInfo classCpInfo)
     {
-        if (note &&
+        if (notePrinter != null &&
             (noteExceptionMatcher == null ||
              !noteExceptionMatcher.matches(classCpInfo.getName(classFile))))
         {
-            noteCount++;
-            System.err.println("Note: " +
-                               ClassUtil.externalClassName(classFile.getName()) +
-                               " calls '(" +
-                               ClassUtil.externalClassName(classCpInfo.getName(classFile)) +
-                               ")Class.forName(variable).newInstance()'");
+            notePrinter.print("Note: " +
+                                 ClassUtil.externalClassName(classFile.getName()) +
+                                 " calls '(" +
+                                 ClassUtil.externalClassName(classCpInfo.getName(classFile)) +
+                                 ")Class.forName(variable).newInstance()'");
         }
     }
 
 
     // Small utility methods.
-    
+
     /**
      * Clears all references to the constant pool.
      */
@@ -306,8 +282,8 @@ public class ClassFileClassForNameReferenceInitializer
         invokestaticMethodRefCpIndex  = -1;
         invokevirtualMethodRefCpIndex = -1;
     }
-    
-    
+
+
     /**
      * Returns the class with the given name, either for the program class pool
      * or from the library class pool, or <code>null</code> if it can't be found.

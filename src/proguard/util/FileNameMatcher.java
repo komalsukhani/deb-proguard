@@ -1,4 +1,4 @@
-/* $Id: FileNameMatcher.java,v 1.6 2005/04/17 15:32:36 eric Exp $
+/* $Id: FileNameMatcher.java,v 1.7.2.1 2006/04/15 21:30:28 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
@@ -24,7 +24,6 @@ import proguard.classfile.ClassConstants;
 
 import java.io.*;
 
-
 /**
  * This StringMatcher tests whether file names match a given regular
  * expression.
@@ -42,6 +41,7 @@ public class FileNameMatcher extends BasicMatcher
     {
         ' ',
         '-',
+        '+',
         '.'
     };
 

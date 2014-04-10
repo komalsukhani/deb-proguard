@@ -52,7 +52,9 @@ easily avoided or resolved:
     <p>
 
 <li>ProGuard's optimization algorithms also remove all <b>empty busy-waiting
-    loops</b>. You should avoid these, or otherwise, you'll have to switch off
+    loops</b>, unless they test on fields that are marked as
+    <code>volatile</code>. You should always mark tested fields as
+    <code>volatile</code>, or otherwise, you'll have to switch off
     optimization using the <code>-dontoptimize</code> option.
     <p>
 
@@ -85,8 +87,8 @@ easily avoided or resolved:
     <p>
 
 <li>ProGuard's obfuscation process currently doesn't follow the <b>naming
-    rule</b> specifying that internal classes must be named as
-    <code>ExternalClass$InternalClass</code>, for instance (cfr. <a href=
+    rule</b> specifying that nested classes must be named as
+    <code>EnclosingClass$InnerClass</code>, for instance (cfr. <a href=
     "http://java.sun.com/docs/books/jls/second_edition/html/j.title.doc.html"
     >The Java Language Specification, Second Edition</a>, <a href=
     "http://java.sun.com/docs/books/jls/second_edition/html/binaryComp.doc.html#59892"
@@ -103,7 +105,7 @@ easily avoided or resolved:
 
 <hr>
 <address>
-Copyright &copy; 2002-2005
+Copyright &copy; 2002-2006
 <a href="http://www.graphics.cornell.edu/~eric/">Eric Lafortune</a>.
 </address>
 </body>
