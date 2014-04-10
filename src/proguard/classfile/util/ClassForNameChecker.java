@@ -1,8 +1,8 @@
-/* $Id: ClassForNameChecker.java,v 1.12.2.1 2006/01/16 22:57:55 eric Exp $
+/* $Id: ClassForNameChecker.java,v 1.12.2.3 2007/06/09 11:54:27 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2006 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2007 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -129,11 +129,13 @@ implements CpInfoVisitor,
         }
 
         // We're still not sure it's not a reference to .class, since the
-        // method name may have been changed or obfuscated.
-        // Perform a more detailed analysis by looking at the referenced method
-        // itself. Make sure we don't do this recursively.
+        // method name may have been changed or obfuscated. Perform a more
+        // detailed analysis by looking at the referenced method itself.
+        // We're looking for the method by name and type, because the
+        // referenced method hasn't been filled out yet. Make sure we don't
+        // do this recursively.
         insideDotClassMethod = true;
-        methodrefCpInfo.referencedMemberInfoAccept(this);
+        classFile.methodAccept(methodName, methodType, this);
         insideDotClassMethod = false;
     }
 
