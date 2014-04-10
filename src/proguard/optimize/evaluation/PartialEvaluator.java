@@ -1,8 +1,8 @@
-/* $Id: PartialEvaluator.java,v 1.26 2004/12/11 16:35:23 eric Exp $
+/* $Id: PartialEvaluator.java,v 1.32 2005/06/11 13:13:16 eric Exp $
  *
  * ProGuard -- shrinking, optimization, and obfuscation of Java class files.
  *
- * Copyright (c) 2002-2004 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2005 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -56,18 +56,22 @@ implements   MemberInfoVisitor,
     private static final int INITIAL_CODE_LENGTH = 1024;
     private static final int INITIAL_VALUE_COUNT = 32;
 
-    private static final int MAXIMUM_EVALUATION_COUNT = 100;
+    //private static final int MAXIMUM_EVALUATION_COUNT = 100;
 
+    private static final int AT_METHOD_ENTRY = -1;
+    private static final int AT_CATCH_ENTRY  = -1;
+    private static final int NONE            = -1;
 
-    private InstructionOffsetValue[] varTraceValues     = new InstructionOffsetValue[INITIAL_CODE_LENGTH];
-    private InstructionOffsetValue[] stackTraceValues   = new InstructionOffsetValue[INITIAL_CODE_LENGTH];
-    private InstructionOffsetValue[] branchOriginValues = new InstructionOffsetValue[INITIAL_CODE_LENGTH];
-    private InstructionOffsetValue[] branchTargetValues = new InstructionOffsetValue[INITIAL_CODE_LENGTH];
-    private TracedVariables[]        vars               = new TracedVariables[INITIAL_CODE_LENGTH];
-    private TracedStack[]            stacks             = new TracedStack[INITIAL_CODE_LENGTH];
-    private int[]                    evaluationCounts   = new int[INITIAL_CODE_LENGTH];
-    private boolean[]                initialization     = new boolean[INITIAL_CODE_LENGTH];
-    private boolean[]                isNecessary        = new boolean[INITIAL_CODE_LENGTH];
+    private InstructionOffsetValue[] varTraceValues      = new InstructionOffsetValue[INITIAL_CODE_LENGTH];
+    private InstructionOffsetValue[] stackTraceValues    = new InstructionOffsetValue[INITIAL_CODE_LENGTH];
+    private InstructionOffsetValue[] unusedTraceValues   = new InstructionOffsetValue[INITIAL_CODE_LENGTH];
+    private InstructionOffsetValue[] branchOriginValues  = new InstructionOffsetValue[INITIAL_CODE_LENGTH];
+    private InstructionOffsetValue[] branchTargetValues  = new InstructionOffsetValue[INITIAL_CODE_LENGTH];
+    private TracedVariables[]        vars                = new TracedVariables[INITIAL_CODE_LENGTH];
+    private TracedStack[]            stacks              = new TracedStack[INITIAL_CODE_LENGTH];
+    private int[]                    evaluationCounts    = new int[INITIAL_CODE_LENGTH];
+    private int[]                    initializedVariable = new int[INITIAL_CODE_LENGTH];
+    private boolean[]                isNecessary         = new boolean[INITIAL_CODE_LENGTH];
     private boolean                  evaluateExceptions;
 
     private TracedVariables  parameters = new TracedVariables(INITIAL_VALUE_COUNT);
@@ -99,11 +103,11 @@ implements   MemberInfoVisitor,
 
         // Count the number of parameters, taking into account their Categories.
         String parameterDescriptor = programMethodInfo.getDescriptor(programClassFile);
-        int count = (isStatic ? 0 : 1) +
+        int parameterSize = (isStatic ? 0 : 1) +
                     ClassUtil.internalMethodParameterSize(parameterDescriptor);
 
         // Reuse the existing parameters object, ensuring the right size.
-        parameters.reset(count);
+        parameters.reset(parameterSize);
 
         // Go over the parameters again.
         InternalTypeEnumeration internalTypeEnumeration =
@@ -112,7 +116,7 @@ implements   MemberInfoVisitor,
         int index = 0;
 
         // Clear the store value of each parameter.
-        parameters.setStoreValue(InstructionOffsetValueFactory.create());
+        parameters.setStoreValue(InstructionOffsetValueFactory.create(AT_METHOD_ENTRY));
 
         // Put the caller's reference in parameter 0.
         if (!isStatic)
@@ -227,27 +231,34 @@ implements   MemberInfoVisitor,
         // branch target.
         if (isNecessary.length < codeLength)
         {
-            varTraceValues     = new InstructionOffsetValue[codeLength];
-            stackTraceValues   = new InstructionOffsetValue[codeLength];
-            branchOriginValues = new InstructionOffsetValue[codeLength];
-            branchTargetValues = new InstructionOffsetValue[codeLength];
-            vars               = new TracedVariables[codeLength];
-            stacks             = new TracedStack[codeLength];
-            evaluationCounts   = new int[codeLength];
-            initialization     = new boolean[codeLength];
-            isNecessary        = new boolean[codeLength];
+            varTraceValues      = new InstructionOffsetValue[codeLength];
+            stackTraceValues    = new InstructionOffsetValue[codeLength];
+            unusedTraceValues   = new InstructionOffsetValue[codeLength];
+            branchOriginValues  = new InstructionOffsetValue[codeLength];
+            branchTargetValues  = new InstructionOffsetValue[codeLength];
+            vars                = new TracedVariables[codeLength];
+            stacks              = new TracedStack[codeLength];
+            evaluationCounts    = new int[codeLength];
+            initializedVariable = new int[codeLength];
+            isNecessary         = new boolean[codeLength];
+
+            for (int index = 0; index < codeLength; index++)
+            {
+                initializedVariable[index] = NONE;
+            }
         }
         else
         {
             for (int index = 0; index < codeLength; index++)
             {
-                varTraceValues[index]     = null;
-                stackTraceValues[index]   = null;
-                branchOriginValues[index] = null;
-                branchTargetValues[index] = null;
-                evaluationCounts[index]   = 0;
-                initialization[index]     = false;
-                isNecessary[index]        = false;
+                varTraceValues[index]      = null;
+                stackTraceValues[index]    = null;
+                unusedTraceValues[index]   = null;
+                branchOriginValues[index]  = null;
+                branchTargetValues[index]  = null;
+                evaluationCounts[index]    = 0;
+                initializedVariable[index] = NONE;
+                isNecessary[index]         = false;
 
                 if (vars[index] != null)
                 {
@@ -306,7 +317,7 @@ implements   MemberInfoVisitor,
         // The invocation of the "super" or "this" <init> method inside a
         // constructor is always necessary, even if it is assumed to have no
         // side effects.
-        boolean markSuperOrThis = 
+        boolean markSuperOrThis =
             methodInfo.getName(classFile).equals(ClassConstants.INTERNAL_METHOD_NAME_INIT);
 
         int aload0Index = 0;
@@ -333,11 +344,11 @@ implements   MemberInfoVisitor,
                          stackTraceValues[index].contains(aload0Index))
                 {
                     markSuperOrThis = false;
-                    
+
                     if (DEBUG_ANALYSIS) System.out.print(index+",");
                     isNecessary[index] = true;
                 }
-                
+
                 // Mark the instruction as necessary if it has side effects.
                 else if (sideEffectInstructionChecker.hasSideEffects(classFile,
                                                                      methodInfo,
@@ -427,8 +438,7 @@ implements   MemberInfoVisitor,
         index = codeLength - 1;
         do
         {
-            if (isTraced(index) &&
-                !isNecessary[index])
+            if (isTraced(index))
             {
                 // Make sure the stack is always consistent at this offset.
                 fixStackConsistency(classFile,
@@ -522,19 +532,20 @@ implements   MemberInfoVisitor,
         // otherwise.
         if (DEBUG_ANALYSIS) System.out.println("Initialization marking: ");
 
-        // TODO: Find a better way.
         index = 0;
         do
         {
-            // Is it an initialization that hasn't been marked yet?
-            if (initialization[index] &&
-                !isNecessary[index])
+            // Is it an initialization that hasn't been marked yet, and whose
+            // corresponding variable is used for storage?
+            int variableIndex = initializedVariable[index];
+            if (variableIndex != NONE &&
+                !isNecessary[index]   &&
+                isVariableReferenced(codeAttrInfo, variableIndex))
             {
                 if (DEBUG_ANALYSIS) System.out.println(index+",");
 
                 // Figure out what kind of initialization value has to be stored.
-                int pushInstructionOffset = stackTraceValues[index].instructionOffset(0);
-                int pushComputationalType = stacks[pushInstructionOffset].getTop(0).computationalType();
+                int pushComputationalType = vars[index].load(variableIndex).computationalType();
                 increaseStackSize(index, pushComputationalType, false);
             }
 
@@ -573,9 +584,13 @@ implements   MemberInfoVisitor,
                     {
                         System.out.println("     is preceded by: "+codeAttrInfoEditor.preInsertions[offset]);
                     }
+                    if (codeAttrInfoEditor.replacements[offset] != null)
+                    {
+                        System.out.println("     is replaced by: "+codeAttrInfoEditor.replacements[offset]);
+                    }
                     if (codeAttrInfoEditor.postInsertions[offset] != null)
                     {
-                        System.out.println("     is followed by: "+codeAttrInfoEditor.preInsertions[offset]);
+                        System.out.println("     is followed by: "+codeAttrInfoEditor.postInsertions[offset]);
                     }
                     System.out.println("     Vars:  "+vars[offset]);
                     System.out.println("     Stack: "+stacks[offset]);
@@ -594,8 +609,11 @@ implements   MemberInfoVisitor,
                                                                 offset);
             if (!isNecessary[offset])
             {
+                codeAttrInfoEditor.deleteInstruction(offset);
+
+                codeAttrInfoEditor.insertBeforeInstruction(offset, null);
                 codeAttrInfoEditor.replaceInstruction(offset, null);
-                codeAttrInfoEditor.replaceInstruction2(offset, null);
+                codeAttrInfoEditor.insertAfterInstruction(offset, null);
             }
 
             offset += instruction.length(offset);
@@ -656,7 +674,8 @@ implements   MemberInfoVisitor,
             {
                 // Has the other instruction been marked yet?
                 int traceOffset = traceOffsetValue.instructionOffset(traceOffsetIndex);
-                if (!isNecessary[traceOffset])
+                if (traceOffset > AT_METHOD_ENTRY &&
+                    !isNecessary[traceOffset])
                 {
                     if (DEBUG_ANALYSIS) System.out.print("["+traceOffset+"]");
 
@@ -925,82 +944,91 @@ implements   MemberInfoVisitor,
                                      CodeAttrInfo codeAttrInfo,
                                      int          index)
     {
-        // Is the unnecessary instruction popping values (but not a dup/swap
-        // instruction)?
-        Instruction popInstruction = InstructionFactory.create(codeAttrInfo.code,
-                                                               index);
-        byte popOpcode = popInstruction.opcode;
+        // See if we have any values pushed on the stack that we aren't using.
+        InstructionOffsetValue traceOffsetValue = unusedTraceValues[index];
 
-        int popCount = popInstruction.stackPopCount(classFile);
-        if (popCount > 0) // &&
-            //popOpcode != InstructionConstants.OP_DUP     &&
-            //popOpcode != InstructionConstants.OP_DUP_X1  &&
-            //popOpcode != InstructionConstants.OP_DUP_X2  &&
-            //popOpcode != InstructionConstants.OP_DUP2    &&
-            //popOpcode != InstructionConstants.OP_DUP2_X1 &&
-            //popOpcode != InstructionConstants.OP_DUP2_X2 &&
-            //popOpcode != InstructionConstants.OP_SWAP)
+        // This includes all values if the popping instruction isn't necessary at all.
+        boolean isNotNecessary = !isNecessary[index];
+        if (isNotNecessary)
         {
-            // Check the instructions on which it depends.
-            InstructionOffsetValue traceOffsetValue = stackTraceValues[index];
-            int traceOffsetCount = traceOffsetValue.instructionOffsetCount();
+            traceOffsetValue = traceOffsetValue.generalize(stackTraceValues[index]).instructionOffsetValue();
+        }
 
-            if (popCount <= 4 &&
-                isAllNecessary(traceOffsetValue))
+        // Do we have any pushing instructions?
+        if (traceOffsetValue.instructionOffsetCount() > 0)
+        {
+            // Is this instruction really popping any values?
+            // Note that dup instructions have a pop count of 0.
+            // Also note that method invocations have their original pop counts,
+            // including any unused parameters.
+            Instruction popInstruction = InstructionFactory.create(codeAttrInfo.code,
+                                                                   index);
+            int popCount = popInstruction.stackPopCount(classFile);
+            if (popCount > 0)
             {
-                if (popOpcode == InstructionConstants.OP_POP ||
-                    popOpcode == InstructionConstants.OP_POP2)
+                // Can we pop all values at the popping instruction?
+                if (isNotNecessary &&
+                    popCount <= 6  &&
+                    isAllNecessary(traceOffsetValue))
                 {
-                    if (DEBUG_ANALYSIS) System.out.println("  Popping value again at "+popInstruction.toString(index)+" (pushed at all "+traceOffsetValue.instructionOffsetCount()+" offsets)");
-
-                    // Simply mark pop and pop2 instructions.
-                    isNecessary[index] = true;
-                }
-                else
-                {
-                    if (DEBUG_ANALYSIS) System.out.println("  Popping value instead of "+popInstruction.toString(index)+" (pushed at all "+traceOffsetValue.instructionOffsetCount()+" offsets)");
-
-                    // Make sure the pushed value is popped again,
-                    // right before this instruction.
-                    decreaseStackSize(index, popCount, true, true);
-                }
-            }
-            //else if (popCount == (popInstruction.isCategory2() ? 4 : 2) &&
-            //         traceOffsetCount == 2                              &&
-            //         isAnyNecessary(traceOffsetValue))
-            //{
-            //    if (DEBUG_ANALYSIS) System.out.println("  Popping single value instead of "+popInstruction.toString(index)+" (pushed at some of "+traceOffsetValue.instructionOffsetCount()+" offsets)");
-            //
-            //    // Make sure the single pushed value is popped again,
-            //    // right before this instruction.
-            //    decreaseStackSize(index, popCount / 2, true, true);
-            //}
-            else if (isAnyNecessary(traceOffsetValue))
-            {
-                if (DEBUG_ANALYSIS) System.out.println("  Popping value somewhere before "+index+" (pushed at some of "+traceOffsetValue.instructionOffsetCount()+" offsets):");
-
-                // Go over all stack pushing instructions.
-                for (int traceOffsetIndex = 0; traceOffsetIndex < traceOffsetCount; traceOffsetIndex++)
-                {
-                    // Has the push instruction been marked?
-                    int pushInstructionOffset = traceOffsetValue.instructionOffset(traceOffsetIndex);
-                    if (isNecessary[pushInstructionOffset])
+                    // Is the popping instruction a simple pop or pop2 instruction?
+                    byte popOpcode = popInstruction.opcode;
+                    if (popOpcode == InstructionConstants.OP_POP ||
+                        popOpcode == InstructionConstants.OP_POP2)
                     {
-                        Instruction pushInstruction = InstructionFactory.create(codeAttrInfo.code,
-                                                                                pushInstructionOffset);
+                        if (DEBUG_ANALYSIS) System.out.println("  Popping value again at "+popInstruction.toString(index)+" (pushed at all "+traceOffsetValue.instructionOffsetCount()+" offsets)");
 
-                        int lastOffset = lastPopInstructionOffset(pushInstructionOffset,
-                                                                  index,
-                                                                  pushInstructionOffset);
-
-                        if (DEBUG_ANALYSIS) System.out.println("    Popping value right after "+lastOffset+", due to push at "+pushInstructionOffset);
+                        // Simply mark the pop or pop2 instruction.
+                        this.isNecessary[index] = true;
+                    }
+                    else
+                    {
+                        if (DEBUG_ANALYSIS) System.out.println("  Popping value instead of "+popInstruction.toString(index)+" (pushed at all "+traceOffsetValue.instructionOffsetCount()+" offsets)");
 
                         // Make sure the pushed value is popped again,
-                        // right after the instruction that pushes it
-                        // (or after the dup instruction that still uses it).
-                        decreaseStackSize(lastOffset,
-                                          pushInstruction.stackPushCount(classFile),
-                                          false, false);
+                        // right before this instruction.
+                        decreaseStackSize(index, popCount, true, isNotNecessary);
+                    }
+                }
+                else if (isAnyNecessary(traceOffsetValue))
+                {
+                    // Pop the values right after the pushing instructions.
+                    if (DEBUG_ANALYSIS) System.out.println("  Popping value somewhere before "+index+" (pushed at some of "+traceOffsetValue.instructionOffsetCount()+" offsets):");
+
+                    // Go over all stack pushing instructions.
+                    int traceOffsetCount = traceOffsetValue.instructionOffsetCount();
+                    for (int traceOffsetIndex = 0; traceOffsetIndex < traceOffsetCount; traceOffsetIndex++)
+                    {
+                        // Has the push instruction been marked?
+                        int pushInstructionOffset = traceOffsetValue.instructionOffset(traceOffsetIndex);
+                        if (this.isNecessary[pushInstructionOffset])
+                        {
+                            Instruction pushInstruction = InstructionFactory.create(codeAttrInfo.code,
+                                                                                    pushInstructionOffset);
+
+                            int lastOffset = lastPopInstructionOffset(pushInstructionOffset,
+                                                                      index,
+                                                                      pushInstructionOffset);
+
+                            if (DEBUG_ANALYSIS) System.out.println("    Popping value right after "+lastOffset+", due to push at "+pushInstructionOffset);
+
+                            // Make sure the pushed value is popped again.
+                            if (lastOffset == AT_METHOD_ENTRY)
+                            {
+                                // Pop it right at the beginning of the method.
+                                decreaseStackSize(0,
+                                                  pushInstruction.stackPushCount(classFile),
+                                                  true, false);
+                            }
+                            else
+                            {
+                                // Pop it right after the instruction that pushes it
+                                // (or after the dup instruction that still uses it).
+                                decreaseStackSize(lastOffset,
+                                                  pushInstruction.stackPushCount(classFile),
+                                                  false, false);
+                            }
+                        }
                     }
                 }
             }
@@ -1024,7 +1052,7 @@ implements   MemberInfoVisitor,
     {
         int lastOffset = startOffset;
 
-        for (int index = startOffset; index < endOffset; index++)
+        for (int index = startOffset + 1; index < endOffset; index++)
         {
             if (isNecessary[index] &&
                 stackTraceValues[index].contains(pushInstructionOffset))
@@ -1040,18 +1068,18 @@ implements   MemberInfoVisitor,
     /**
      * Puts the required push instruction before the given index. The
      * instruction is marked as necessary.
-     * @param index             the offset of the instruction.
+     * @param offset            the offset of the instruction.
      * @param computationalType the computational type on the stack, for
      *                          push instructions.
      * @param delete            specifies whether the instruction should be
      *                          deleted.
      */
-    private void increaseStackSize(int     index,
+    private void increaseStackSize(int     offset,
                                    int     computationalType,
                                    boolean delete)
     {
         // Mark this instruction.
-        isNecessary[index] = true;
+        isNecessary[offset] = true;
 
         // Create a simple push instrucion.
         byte replacementOpcode =
@@ -1065,13 +1093,13 @@ implements   MemberInfoVisitor,
         Instruction replacementInstruction = new SimpleInstruction(replacementOpcode);
 
         // Insert the pop or push instruction.
-        codeAttrInfoEditor.insertBeforeInstruction(index,
+        codeAttrInfoEditor.insertBeforeInstruction(offset,
                                                    replacementInstruction);
 
         // Delete the original instruction if necessary.
         if (delete)
         {
-            codeAttrInfoEditor.deleteInstruction(index);
+            codeAttrInfoEditor.deleteInstruction(offset);
         }
     }
 
@@ -1090,28 +1118,43 @@ implements   MemberInfoVisitor,
                                    boolean before,
                                    boolean delete)
     {
+        // Mark this instruction.
+        isNecessary[offset] = true;
+
         boolean after = !before;
 
-        // Special case: we may replace the instruction by two pop instructions.
-        if (delete && popCount > 2)
+        int remainingPopCount = popCount;
+
+        if (delete)
         {
+            // Replace the original instruction.
+            int count = remainingPopCount == 1 ? 1 : 2;
+
+            // Create a simple pop instrucion.
+            byte replacementOpcode = count == 1 ?
+                InstructionConstants.OP_POP :
+                InstructionConstants.OP_POP2;
+
+            Instruction replacementInstruction = new SimpleInstruction(replacementOpcode);
+
+            // Insert the pop instruction.
+            codeAttrInfoEditor.replaceInstruction(offset,
+                                                  replacementInstruction);
+
+            remainingPopCount -= count;
+
+            // We may insert other pop instructions before and after this one.
             before = true;
             after  = true;
         }
 
-        if (popCount < 1 ||
-            popCount > 4)
+        if (before && remainingPopCount > 0)
         {
-            throw new IllegalArgumentException("Unsupported stack size reduction ["+popCount+"]");
-        }
+            // Insert before the original instruction.
+            int count = remainingPopCount == 1 ? 1 : 2;
 
-        // Mark this instruction.
-        isNecessary[offset] = true;
-
-        if (before)
-        {
             // Create a simple pop instrucion.
-            byte replacementOpcode = popCount == 1 || popCount == 3 ?
+            byte replacementOpcode = count == 1 ?
                 InstructionConstants.OP_POP :
                 InstructionConstants.OP_POP2;
 
@@ -1120,28 +1163,32 @@ implements   MemberInfoVisitor,
             // Insert the pop instruction.
             codeAttrInfoEditor.insertBeforeInstruction(offset,
                                                        replacementInstruction);
+
+            remainingPopCount -= count;
         }
 
-        if (after)
+        if (after && remainingPopCount > 0)
         {
+            // Insert after the original instruction.
+            int count = remainingPopCount == 1 ? 1 : 2;
+
             // Create a simple pop instrucion.
-            byte replacementOpcode = popCount == 1 ?
+            byte replacementOpcode = count == 1 ?
                 InstructionConstants.OP_POP :
                 InstructionConstants.OP_POP2;
 
             Instruction replacementInstruction = new SimpleInstruction(replacementOpcode);
 
-            if (DEBUG_ANALYSIS) System.out.println("    Pop instruction after ["+offset+"]: "+replacementInstruction);
- 
             // Insert the pop instruction.
             codeAttrInfoEditor.insertAfterInstruction(offset,
                                                       replacementInstruction);
+
+            remainingPopCount -= count;
         }
 
-        // Delete the original instruction if necessary.
-        if (delete)
+        if (remainingPopCount > 0)
         {
-            codeAttrInfoEditor.deleteInstruction(offset);
+            throw new IllegalArgumentException("Unsupported stack size reduction ["+popCount+"]");
         }
     }
 
@@ -1275,8 +1322,8 @@ implements   MemberInfoVisitor,
             variables.reset(codeAttrInfo.u2maxLocals);
             stack.reset(codeAttrInfo.u2maxStack);
 
-            // The initial stack doesn't have associated instruction offsets.
-            Value storeValue = InstructionOffsetValueFactory.create();
+            // The initial stack has a generic instruction offset.
+            Value storeValue = InstructionOffsetValueFactory.create(AT_CATCH_ENTRY);
             variables.setStoreValue(storeValue);
             stack.setStoreValue(storeValue);
 
@@ -1364,6 +1411,8 @@ implements   MemberInfoVisitor,
 
         Processor processor = new Processor(variables, stack, branchUnit);
 
+        UnusedParameterCleaner unusedParameterCleaner = new UnusedParameterCleaner(stack);
+
         // Evaluate the subsequent instructions.
         while (true)
         {
@@ -1371,8 +1420,9 @@ implements   MemberInfoVisitor,
             int evaluationCount = evaluationCounts[instructionOffset]++;
             if (evaluationCount == 0)
             {
-                varTraceValues[instructionOffset]   = InstructionOffsetValueFactory.create();
-                stackTraceValues[instructionOffset] = InstructionOffsetValueFactory.create();
+                varTraceValues[instructionOffset]    = InstructionOffsetValueFactory.create();
+                stackTraceValues[instructionOffset]  = InstructionOffsetValueFactory.create();
+                unusedTraceValues[instructionOffset] = InstructionOffsetValueFactory.create();
             }
 
             // Remember this instruction's offset with any stored value.
@@ -1384,6 +1434,7 @@ implements   MemberInfoVisitor,
             InstructionOffsetValue traceValue = InstructionOffsetValueFactory.create();
             variables.setTraceValue(traceValue);
             stack.setTraceValue(traceValue);
+            unusedParameterCleaner.setTraceValue(traceValue);
 
             // Reset the initialization flag.
             variables.resetInitialization();
@@ -1399,6 +1450,13 @@ implements   MemberInfoVisitor,
             branchUnit.resetCalled();
             branchUnit.setTraceBranchTargets(nextInstructionOffsetValue);
 
+            // First clean all traces to unused parameters if this is a method
+            // invocation.
+            instruction.accept(classFile,
+                               methodInfo,
+                               codeAttrInfo,
+                               instructionOffset,
+                               unusedParameterCleaner);
 
             if (DEBUG)
             {
@@ -1410,8 +1468,12 @@ implements   MemberInfoVisitor,
                 // Process the instruction. The processor may call
                 // the Variables methods of 'variables',
                 // the Stack methods of 'stack', and
-                // the BranchUnit methods of this evaluator.
-                instruction.accept(classFile, methodInfo, codeAttrInfo, instructionOffset, processor);
+                // the BranchUnit methods of 'branchUnit'.
+                instruction.accept(classFile,
+                                   methodInfo,
+                                   codeAttrInfo,
+                                   instructionOffset,
+                                   processor);
             }
             catch (RuntimeException ex)
             {
@@ -1426,12 +1488,14 @@ implements   MemberInfoVisitor,
             // Collect the offsets of the instructions whose results were used.
             InstructionOffsetValue variablesTraceValue = variables.getTraceValue().instructionOffsetValue();
             InstructionOffsetValue stackTraceValue     = stack.getTraceValue().instructionOffsetValue();
+            InstructionOffsetValue unusedTraceValue    = unusedParameterCleaner.getTraceValue().instructionOffsetValue();
             varTraceValues[instructionOffset] =
                 varTraceValues[instructionOffset].generalize(variablesTraceValue).instructionOffsetValue();
             stackTraceValues[instructionOffset] =
                 stackTraceValues[instructionOffset].generalize(stackTraceValue).instructionOffsetValue();
-            initialization[instructionOffset] =
-                initialization[instructionOffset] || variables.wasInitialization();
+            unusedTraceValues[instructionOffset] =
+                unusedTraceValues[instructionOffset].generalize(unusedTraceValue).instructionOffsetValue();
+            initializedVariable[instructionOffset] = variables.getInitializationIndex();
 
             // Collect the branch targets from the branch unit.
             InstructionOffsetValue branchTargets = branchUnit.getTraceBranchTargets();
@@ -1464,6 +1528,10 @@ implements   MemberInfoVisitor,
                 if (stackTraceValues[instructionOffset].instructionOffsetCount() > 0)
                 {
                     System.out.println("     has up till now been using information from instructions setting stack: "+stackTraceValues[instructionOffset]);
+                }
+                if (unusedTraceValues[instructionOffset].instructionOffsetCount() > 0)
+                {
+                    System.out.println("     no longer needs information from instructions setting stack: "+unusedTraceValues[instructionOffset]);
                 }
                 if (branchTargetValues[instructionOffset] != null)
                 {
@@ -1932,8 +2000,8 @@ implements   MemberInfoVisitor,
 
                     if (DEBUG_ANALYSIS) System.out.println("  Replacing branch instruction at ["+offset+"] by "+replacementInstruction.toString());
 
-                    codeAttrInfoEditor.replaceInstruction2(offset,
-                                                           replacementInstruction);
+                    codeAttrInfoEditor.replaceInstruction(offset,
+                                                          replacementInstruction);
                 }
             }
         }
@@ -1969,14 +2037,14 @@ implements   MemberInfoVisitor,
     private boolean isAnyNecessary(InstructionOffsetValue traceValue)
     {
         int traceCount = traceValue.instructionOffsetCount();
-        if (traceCount == 0)
-        {
-            return true;
-        }
 
         for (int traceIndex = 0; traceIndex < traceCount; traceIndex++)
         {
-            if (isNecessary[traceValue.instructionOffset(traceIndex)])
+            int index = traceValue.instructionOffset(traceIndex);
+
+            if (index == AT_METHOD_ENTRY ||
+                (isNecessary[index] &&
+                 !codeAttrInfoEditor.isModified(index)))
             {
                 return true;
             }
@@ -1993,15 +2061,47 @@ implements   MemberInfoVisitor,
     private boolean isAllNecessary(InstructionOffsetValue traceValue)
     {
         int traceCount = traceValue.instructionOffsetCount();
+
         for (int traceIndex = 0; traceIndex < traceCount; traceIndex++)
         {
-            if (!isNecessary[traceValue.instructionOffset(traceIndex)])
+            int index = traceValue.instructionOffset(traceIndex);
+
+            if (index != AT_METHOD_ENTRY &&
+                (!isNecessary[index] ||
+                 codeAttrInfoEditor.isModified(index)))
             {
                 return false;
             }
         }
 
         return true;
+    }
+
+
+    /**
+     * Returns whether the given variable is ever referenced (stored) by an
+     * instruction that is marked as necessary.
+     */
+    private boolean isVariableReferenced(CodeAttrInfo codeAttrInfo,
+                                         int          variableIndex)
+    {
+        int codeLength = codeAttrInfo.u4codeLength;
+
+        for (int index = 0; index < codeLength; index++)
+        {
+            if (isNecessary[index] &&
+                !codeAttrInfoEditor.isModified(index))
+            {
+                Value traceValue = vars[index].getStoredTraceValue(variableIndex);
+                if (traceValue != null &&
+                    isAnyNecessary(traceValue.instructionOffsetValue()))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
 
