@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2012 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2013 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -23,7 +23,6 @@ package proguard.obfuscate;
 import proguard.*;
 import proguard.classfile.*;
 import proguard.classfile.attribute.visitor.*;
-import proguard.classfile.constant.visitor.AllConstantVisitor;
 import proguard.classfile.editor.*;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.*;
@@ -105,7 +104,7 @@ public class Obfuscator
 
         AttributeVisitor optionalAttributeUsageMarker =
             configuration.keepAttributes == null ? null :
-                new AttributeNameFilter(new ListParser(new NameParser()).parse(configuration.keepAttributes),
+                new AttributeNameFilter(configuration.keepAttributes,
                                         attributeUsageMarker);
 
         programClassPool.classesAccept(
@@ -146,17 +145,23 @@ public class Obfuscator
             reader.pump(keeper);
 
             // Print out a summary of the warnings if necessary.
-            int mappingWarningCount = warningPrinter.getWarningCount();
-            if (mappingWarningCount > 0)
+            int warningCount = warningPrinter.getWarningCount();
+            if (warningCount > 0)
             {
-                System.err.println("Warning: there were " + mappingWarningCount +
-                                                            " kept classes and class members that were remapped anyway.");
+                System.err.println("Warning: there were " + warningCount +
+                                   " kept classes and class members that were remapped anyway.");
                 System.err.println("         You should adapt your configuration or edit the mapping file.");
 
                 if (!configuration.ignoreWarnings)
                 {
-                    System.err.println("         If you are sure this remapping won't hurt,");
-                    System.err.println("         you could try your luck using the '-ignorewarnings' option.");
+                    System.err.println("         If you are sure this remapping won't hurt, you could try your luck");
+                    System.err.println("         using the '-ignorewarnings' option.");
+                }
+
+                System.err.println("         (http://proguard.sourceforge.net/manual/troubleshooting.html#mappingconflict1)");
+
+                if (!configuration.ignoreWarnings)
+                {
                     throw new IOException("Please correct the above warnings first.");
                 }
             }
@@ -385,6 +390,12 @@ public class Obfuscator
             {
                 System.err.println("         If you are sure the conflicts are harmless,");
                 System.err.println("         you could try your luck using the '-ignorewarnings' option.");
+            }
+
+            System.err.println("         (http://proguard.sourceforge.net/manual/troubleshooting.html#mappingconflict2)");
+
+            if (!configuration.ignoreWarnings)
+            {
                 throw new IOException("Please correct the above warnings first.");
             }
         }
@@ -392,14 +403,20 @@ public class Obfuscator
         // Print out the mapping, if requested.
         if (configuration.printMapping != null)
         {
-            PrintStream ps = isFile(configuration.printMapping) ?
-                new PrintStream(new BufferedOutputStream(new FileOutputStream(configuration.printMapping))) :
-                System.out;
+            PrintStream ps =
+                configuration.printMapping == Configuration.STD_OUT ? System.out :
+                    new PrintStream(
+                    new BufferedOutputStream(
+                    new FileOutputStream(configuration.printMapping)));
 
             // Print out items that will be removed.
             programClassPool.classesAcceptAlphabetically(new MappingPrinter(ps));
 
-            if (ps != System.out)
+            if (ps == System.out)
+            {
+                ps.flush();
+            }
+            else
             {
                 ps.close();
             }
@@ -420,8 +437,7 @@ public class Obfuscator
             configuration.allowAccessModification)
         {
             programClassPool.classesAccept(
-                new AllConstantVisitor(
-                new AccessFixer()));
+                new AccessFixer());
 
             // Fix the access flags of the inner classes information.
             programClassPool.classesAccept(
@@ -444,15 +460,5 @@ public class Obfuscator
         // Remove unused constants.
         programClassPool.classesAccept(
             new ConstantPoolShrinker());
-    }
-
-
-    /**
-     * Returns whether the given file is actually a file, or just a placeholder
-     * for the standard output.
-     */
-    private boolean isFile(File file)
-    {
-        return file.getPath().length() > 0;
     }
 }

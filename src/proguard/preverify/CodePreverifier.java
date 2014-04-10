@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2012 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2013 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -25,9 +25,9 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.preverification.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.editor.*;
-import proguard.classfile.instruction.*;
+import proguard.classfile.instruction.InstructionConstants;
 import proguard.classfile.util.SimplifiedVisitor;
-import proguard.classfile.visitor.*;
+import proguard.classfile.visitor.ClassPrinter;
 import proguard.evaluation.*;
 import proguard.evaluation.value.*;
 import proguard.optimize.evaluation.*;
@@ -55,7 +55,7 @@ implements   AttributeVisitor
 
     private final PartialEvaluator    partialEvaluator    = new PartialEvaluator();
     private final LivenessAnalyzer    livenessAnalyzer    = new LivenessAnalyzer(partialEvaluator);
-    private final CodeAttributeEditor codeAttributeEditor = new CodeAttributeEditor(true);
+    private final CodeAttributeEditor codeAttributeEditor = new CodeAttributeEditor();
 
 
     /**
@@ -445,7 +445,7 @@ implements   AttributeVisitor
                                isDupOrSwap(codeAttribute.code[producerOffset]))
                         {
                             producers      = partialEvaluator.getStackBefore(producerOffset).getTopProducerValue(0).instructionOffsetValue();
-                            producerOffset = producers.instructionOffset(0);
+                            producerOffset = producers.minimumValue();
                         }
 
                         // Are we in an instance initialization method,

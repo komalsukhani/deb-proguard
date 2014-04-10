@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2012 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2013 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -188,6 +188,10 @@ public class ConfigurationWriter
                 // Append the filters, if any.
                 boolean filtered = false;
 
+                // For backward compatibility, the aar and apk filters come
+                // first.
+                filtered = writeFilter(filtered, entry.getAarFilter());
+                filtered = writeFilter(filtered, entry.getApkFilter());
                 filtered = writeFilter(filtered, entry.getZipFilter());
                 filtered = writeFilter(filtered, entry.getEarFilter());
                 filtered = writeFilter(filtered, entry.getWarFilter());

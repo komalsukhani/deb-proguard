@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2012 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2013 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -51,18 +51,18 @@ public class ProGuardTask extends ConfigurationTask
             {
                 parser.parse(configuration);
             }
-            catch (ParseException ex)
+            catch (ParseException e)
             {
-                throw new BuildException(ex.getMessage());
+                throw new BuildException(e.getMessage(), e);
             }
             finally
             {
                 parser.close();
             }
         }
-        catch (IOException ex)
+        catch (IOException e)
         {
-            throw new BuildException(ex.getMessage());
+            throw new BuildException(e.getMessage(), e);
         }
     }
 
@@ -315,9 +315,9 @@ public class ProGuardTask extends ConfigurationTask
             ProGuard proGuard = new ProGuard(configuration);
             proGuard.execute();
         }
-        catch (IOException ex)
+        catch (IOException e)
         {
-            throw new BuildException(ex.getMessage());
+            throw new BuildException(e.getMessage(), e);
         }
     }
 
@@ -339,7 +339,7 @@ public class ProGuardTask extends ConfigurationTask
             fileName.equalsIgnoreCase("off")    ? null :
             fileName.equalsIgnoreCase("true")  ||
             fileName.equalsIgnoreCase("yes")   ||
-            fileName.equalsIgnoreCase("on")     ? new File("")   :
+            fileName.equalsIgnoreCase("on")     ? Configuration.STD_OUT :
                                                   resolvedFile(file);
     }
 
