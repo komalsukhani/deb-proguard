@@ -4,6 +4,8 @@ Priority: optional
 Maintainer: Sam Clegg <samo@debian.org>
 Build-Depends: debhelper (>= 7.0.15), cdbs, default-jdk, ant
 Standards-Version: 3.9.4
+Vcs-Git: git://anonscm.debian.org/pkg-java/proguard.git
+Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-java/proguard.git
 
 Package: proguard
 Architecture: all
