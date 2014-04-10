@@ -1,3 +1,2 @@
 version=3
-
-http://sf.net/proguard/proguard([\d\.]+)\.tar\.gz
+http://sf.net/proguard/proguard([\d\.]+)\.tar\.gz debian debian/orig-tar.sh
