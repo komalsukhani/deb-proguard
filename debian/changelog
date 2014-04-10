@@ -1,6 +1,7 @@
-proguard (4.8-1) UNRELEASED; urgency=medium
+proguard (4.11-1) unstable; urgency=medium
 
   * Team upload.
+  * New upstream release
   * Removed the non-free documentation from the package (Closes: #719706)
   * Removed the pre-built jars from the upstream tarball
   * debian/control:
@@ -11,7 +12,7 @@ proguard (4.8-1) UNRELEASED; urgency=medium
   * Switch to debhelper level 9
   * Use XZ compression for the upstream tarball
 
- -- Emmanuel Bourg <ebourg@apache.org>  Thu, 10 Apr 2014 11:47:46 +0200
+ -- Emmanuel Bourg <ebourg@apache.org>  Thu, 10 Apr 2014 13:58:11 +0200
 
 proguard (4.8-0.1) unstable; urgency=low
 
