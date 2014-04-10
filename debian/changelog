@@ -4,6 +4,7 @@ proguard (4.8-1) UNRELEASED; urgency=medium
   * debian/control:
     - The package is now co-maintained with the Java Team
     - Added the Vcs-* fields
+  * Switch to debhelper level 9
 
  -- Emmanuel Bourg <ebourg@apache.org>  Thu, 10 Apr 2014 11:47:46 +0200
 
