@@ -3,6 +3,7 @@ proguard (4.8-1) UNRELEASED; urgency=medium
   * Team upload.
   * debian/control:
     - The package is now co-maintained with the Java Team
+    - Standards-Version updated to 3.9.5 (no changes)
     - Added the Vcs-* fields
     - Added the Homepage field
   * Switch to debhelper level 9
