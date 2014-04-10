@@ -74,6 +74,9 @@
       <field  access    ="final"
               type      ="long"
               name      ="serialVersionUID" />
+      <field  access    ="static final"
+              type      ="java.io.ObjectStreamField[]"
+              name      ="serialPersistentFields" />
       <method access    ="private"
               type      ="void"
               name      ="writeObject"
@@ -81,7 +84,7 @@
       <method access    ="private"
               type      ="void"
               name      ="readObject"
-              parameters="java.io.ObjectOutputStream" />
+              parameters="java.io.ObjectInputStream" />
       <method type      ="java.lang.Object"
               name      ="writeReplace"
               parameters="" />

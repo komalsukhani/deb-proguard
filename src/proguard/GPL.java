@@ -1,6 +1,6 @@
-/* $Id: GPL.java,v 1.5.2.6 2007/01/18 21:31:51 eric Exp $
- *
- * ProGuard -- shrinking, optimization, and obfuscation of Java bytecode.
+/*
+ * ProGuard -- shrinking, optimization, obfuscation, and preverification
+ *             of Java bytecode.
  *
  * Copyright (c) 2002-2007 Eric Lafortune (eric@graphics.cornell.edu)
  *
@@ -90,6 +90,7 @@ public class GPL
         }
         catch (IOException ex)
         {
+            // We'll just stop looking for more names.
         }
 
         return packageNames;
@@ -166,6 +167,7 @@ public class GPL
                packageName.startsWith("org.eclipse")            ||
                packageName.startsWith("org.netbeans")           ||
                packageName.startsWith("com.sun.kvem")           ||
+               packageName.startsWith("eclipseme")              ||
                packageName.startsWith("jg.j2me")                ||
                packageName.startsWith("jg.common")              ||
                packageName.startsWith("jg.buildengine");
