@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2012 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2013 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -81,6 +81,17 @@ public class ConfigurationParser
                                 description,
                                 baseDir),
              properties);
+    }
+
+
+    /**
+     * Creates a new ConfigurationParser for the given file, with the system
+     * Properties.
+     * @deprecated Temporary code for backward compatibility in Obclipse.
+     */
+    public ConfigurationParser(File file) throws IOException
+    {
+        this(file, System.getProperties());
     }
 
 
@@ -274,7 +285,7 @@ public class ConfigurationParser
                 ConfigurationConstants.OPEN_ARGUMENTS_KEYWORD.equals(nextWord))
             {
                 // Read all filters in an array.
-                List[] filters = new List[5];
+                List[] filters = new List[7];
 
                 int counter = 0;
                 do
@@ -309,6 +320,18 @@ public class ConfigurationParser
                             if (counter > 0)
                             {
                                 entry.setZipFilter(filters[--counter]);
+                                if (counter > 0)
+                                {
+                                    // For backward compatibility, the apk
+                                    // filter comes second in the list.
+                                    entry.setApkFilter(filters[--counter]);
+                                    if (counter > 0)
+                                    {
+                                        // For backward compatibility, the aar
+                                        // filter comes first in the list.
+                                        entry.setAarFilter(filters[--counter]);
+                                    }
+                                }
                             }
                         }
                     }
@@ -399,7 +422,7 @@ public class ConfigurationParser
         // Didn't the user specify a file name?
         if (configurationEnd())
         {
-            return new File("");
+            return Configuration.STD_OUT;
         }
 
         // Make sure the file is properly resolved.
@@ -537,7 +560,13 @@ public class ConfigurationParser
     }
 
 
-    private ClassSpecification parseClassSpecificationArguments()
+    /**
+     * Parses and returns a class specification.
+     * @throws ParseException if the class specification contains a syntax error.
+     * @throws IOException    if an IO error occurs while reading the class
+     *                        specification.
+     */
+    public ClassSpecification parseClassSpecificationArguments()
     throws ParseException, IOException
     {
         // Clear the annotation type.
@@ -957,22 +986,22 @@ public class ConfigurationParser
     /**
      * Reads a comma-separated list of java identifiers or of file names.
      * Examples of invocation arguments:
-     *   ("directory n", true,  true,  false, true,  false, true,  false, false, ...)
-     *   ("optimizatio", true,  false, false, false, false, false, false, false, ...)
-     *   ("package nam", true,  true,  false, false, true,  false, true,  false, ...)
-     *   ("attribute n", true,  true,  false, false, true,  false, false, false, ...)
-     *   ("class name",  true,  true,  false, false, true,  false, true,  false, ...)
-     *   ("resource fi", true,  true,  false, true,  false, false, false, false, ...)
-     *   ("resource fi", true,  true,  false, true,  false, false, false, false, ...)
-     *   ("class name",  true,  true,  false, false, true,  false, true,  false, ...)
-     *   ("class name",  true,  true,  false, false, true,  false, true,  false, ...)
-     *   ("filter",      true,  true,  true,  true,  false, true,  false, false, ...)
-     *   ("annotation ", false, false, false, false, true,  false, false, true,  ...)
-     *   ("class name ", true,  false, false, false, true,  false, false, false, ...)
-     *   ("annotation ", true,  false, false, false, true,  false, false, true,  ...)
-     *   ("class name ", false, false, false, false, true,  false, false, false, ...)
-     *   ("annotation ", true,  false, false, false, true,  false, false, true,  ...)
-     *   ("argument",    true,  true,  true,  false, true,  false, false, false, ...)
+     *   ("directory name", true,  true,  false, true,  false, true,  false, false, ...)
+     *   ("optimization",   true,  false, false, false, false, false, false, false, ...)
+     *   ("package name",   true,  true,  false, false, true,  false, true,  false, ...)
+     *   ("attribute name", true,  true,  false, false, true,  false, false, false, ...)
+     *   ("class name",     true,  true,  false, false, true,  false, true,  false, ...)
+     *   ("resource file",  true,  true,  false, true,  false, false, false, false, ...)
+     *   ("resource file",  true,  true,  false, true,  false, false, false, false, ...)
+     *   ("class name",     true,  true,  false, false, true,  false, true,  false, ...)
+     *   ("class name",     true,  true,  false, false, true,  false, true,  false, ...)
+     *   ("filter",         true,  true,  true,  true,  false, true,  false, false, ...)
+     *   ("annotation ",    false, false, false, false, true,  false, false, true,  ...)
+     *   ("class name ",    true,  false, false, false, true,  false, false, false, ...)
+     *   ("annotation ",    true,  false, false, false, true,  false, false, true,  ...)
+     *   ("class name ",    false, false, false, false, true,  false, false, false, ...)
+     *   ("annotation ",    true,  false, false, false, true,  false, false, true,  ...)
+     *   ("argument",       true,  true,  true,  false, true,  false, false, false, ...)
      */
     private List parseCommaSeparatedList(String  expectedDescription,
                                          boolean readFirstWord,
@@ -1107,8 +1136,8 @@ public class ConfigurationParser
 
 
     /**
-     * Replaces any system properties in the given word by their values
-     * (e.g. the substring "<java.home>" is replaced by its value).
+     * Replaces any properties in the given word by their values.
+     * For instance, the substring "<java.home>" is replaced by its value.
      */
     private String replaceSystemProperties(String word) throws ParseException
     {
@@ -1124,9 +1153,7 @@ public class ConfigurationParser
             int toIndex = word.indexOf(ConfigurationConstants.CLOSE_SYSTEM_PROPERTY, fromIndex+1);
             if (toIndex < 0)
             {
-                throw new ParseException("Expecting closing '" + ConfigurationConstants.CLOSE_SYSTEM_PROPERTY +
-                                         "' after opening '" + ConfigurationConstants.OPEN_SYSTEM_PROPERTY +
-                                         "' in " + reader.locationDescription());
+                break;
             }
 
             String propertyName  = word.substring(fromIndex+1, toIndex);
@@ -1137,9 +1164,9 @@ public class ConfigurationParser
                                          "' is undefined in " + reader.locationDescription());
             }
 
-            word = word.substring(0, fromIndex) +
-                       propertyValue +
-                       word.substring(toIndex+1);
+            word = word.substring(0, fromIndex) + propertyValue + word.substring(toIndex+1);
+
+            fromIndex += propertyValue.length();
         }
 
         return word;

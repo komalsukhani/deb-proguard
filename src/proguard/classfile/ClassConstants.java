@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2012 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2013 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -25,7 +25,7 @@ package proguard.classfile;
  *
  * @author Eric Lafortune
  */
-public interface ClassConstants
+public class ClassConstants
 {
     public static final String CLASS_FILE_EXTENSION = ".class";
 
@@ -181,11 +181,11 @@ public interface ClassConstants
     public static final String ATTR_RuntimeInvisibleParameterAnnotations = "RuntimeInvisibleParameterAnnotations";
     public static final String ATTR_AnnotationDefault                    = "AnnotationDefault";
 
-    public static final int ELEMENT_VALUE_STRING_CONSTANT = 's';
-    public static final int ELEMENT_VALUE_ENUM_CONSTANT   = 'e';
-    public static final int ELEMENT_VALUE_CLASS           = 'c';
-    public static final int ELEMENT_VALUE_ANNOTATION      = '@';
-    public static final int ELEMENT_VALUE_ARRAY           = '[';
+    public static final char ELEMENT_VALUE_STRING_CONSTANT = 's';
+    public static final char ELEMENT_VALUE_ENUM_CONSTANT   = 'e';
+    public static final char ELEMENT_VALUE_CLASS           = 'c';
+    public static final char ELEMENT_VALUE_ANNOTATION      = '@';
+    public static final char ELEMENT_VALUE_ARRAY           = '[';
 
     public static final char EXTERNAL_PACKAGE_SEPARATOR     = '.';
     public static final char EXTERNAL_INNER_CLASS_SEPARATOR = '.';
@@ -249,6 +249,8 @@ public interface ClassConstants
     public static final String INTERNAL_METHOD_NAME_DOT_CLASS_JIKES = "class";
     public static final String INTERNAL_METHOD_TYPE_DOT_CLASS_JIKES = "(Ljava/lang/String;Z)Ljava/lang/Class;";
 
+    public static final String INTERNAL_METHOD_TYPE_INIT_ENUM = "(Ljava/lang/String;I)V";
+
     public static final String INTERNAL_METHOD_NAME_NEW_INSTANCE = "newInstance";
     public static final String INTERNAL_METHOD_TYPE_NEW_INSTANCE = "()Ljava/lang/Object;";
 
@@ -285,6 +287,12 @@ public interface ClassConstants
     public static final String INTERNAL_METHOD_TYPE_OBJECT_STRING_BUILDER  = "(Ljava/lang/Object;)Ljava/lang/StringBuilder;";
     public static final String INTERNAL_METHOD_NAME_TOSTRING               = "toString";
     public static final String INTERNAL_METHOD_TYPE_TOSTRING               = "()Ljava/lang/String;";
+    public static final String INTERNAL_METHOD_NAME_CLONE                  = "clone";
+    public static final String INTERNAL_METHOD_TYPE_CLONE                  = "()Ljava/lang/Object;";
+
+    public static final String INTERNAL_METHOD_NAME_VALUES                 = "values";
+    public static final String INTERNAL_METHOD_NAME_ORDINAL                = "ordinal";
+    public static final String INTERNAL_METHOD_TYPE_ORDINAL                = "()I";
 
     public static final char INTERNAL_TYPE_VOID                   = 'V';
     public static final char INTERNAL_TYPE_BOOLEAN                = 'Z';

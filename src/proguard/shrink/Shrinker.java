@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2012 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2013 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -100,6 +100,8 @@ public class Shrinker
             {
                 new InnerUsageMarker(usageMarker),
                 new AnnotationUsageMarker(usageMarker),
+                new SignatureUsageMarker(usageMarker),
+                new LocalVariableTypeUsageMarker(usageMarker)
             }))));
 
         // Should we explain ourselves?
@@ -124,21 +126,27 @@ public class Shrinker
 
         if (configuration.printUsage != null)
         {
-            PrintStream ps = isFile(configuration.printUsage) ?
-                new PrintStream(new BufferedOutputStream(new FileOutputStream(configuration.printUsage))) :
-                System.out;
+            PrintStream ps =
+                configuration.printUsage == Configuration.STD_OUT ? System.out :
+                    new PrintStream(
+                    new BufferedOutputStream(
+                    new FileOutputStream(configuration.printUsage)));
 
             // Print out items that will be removed.
             programClassPool.classesAcceptAlphabetically(
                 new UsagePrinter(usageMarker, true, ps));
 
-            if (ps != System.out)
+            if (ps == System.out)
+            {
+                ps.flush();
+            }
+            else
             {
                 ps.close();
             }
         }
 
-        // Discard unused program classes.
+        // Clean up used program classes and discard unused program classes.
         int originalProgramClassPoolSize = programClassPool.size();
 
         ClassPool newProgramClassPool = new ClassPool();
@@ -151,6 +159,10 @@ public class Shrinker
             })));
 
         programClassPool.clear();
+
+        // Clean up library classes.
+        libraryClassPool.classesAccept(
+            new ClassShrinker(usageMarker));
 
         // Check if we have at least some output classes.
         int newProgramClassPoolSize = newProgramClassPool.size();
@@ -167,15 +179,5 @@ public class Shrinker
         }
 
         return newProgramClassPool;
-    }
-
-
-    /**
-     * Returns whether the given file is actually a file, or just a placeholder
-     * for the standard output.
-     */
-    private boolean isFile(File file)
-    {
-        return file.getPath().length() > 0;
     }
 }

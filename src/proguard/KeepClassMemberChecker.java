@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2012 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2013 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -73,12 +73,13 @@ implements   ClassVisitor
                         className = keepClassSpecification.extendsClassName;
                     }
 
-                    if (className != null &&
-                        notePrinter.accepts(className))
+                    if (notePrinter.accepts(className))
                     {
                         notePrinter.print(className,
                                           "Note: the configuration doesn't specify which class members to keep for class '" +
-                                          ClassUtil.externalClassName(className) + "'");
+                                          (className == null ?
+                                              ConfigurationConstants.ANY_CLASS_KEYWORD :
+                                              ClassUtil.externalClassName(className)) + "'");
                     }
                 }
             }

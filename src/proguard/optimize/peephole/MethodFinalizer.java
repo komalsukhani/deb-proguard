@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2012 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2013 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -22,7 +22,7 @@ package proguard.optimize.peephole;
 
 import proguard.classfile.*;
 import proguard.classfile.util.*;
-import proguard.classfile.visitor.*;
+import proguard.classfile.visitor.MemberVisitor;
 import proguard.optimize.KeepMarker;
 
 /**
@@ -61,7 +61,7 @@ implements   MemberVisitor
 
 
     // Implementations for MemberVisitor.
-    
+
     public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
     {
         String name = programMethod.getName(programClass);
