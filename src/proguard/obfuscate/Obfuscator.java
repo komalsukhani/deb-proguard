@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2009 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2012 Eric Lafortune (eric@graphics.cornell.edu)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -99,18 +99,29 @@ public class Obfuscator
         libraryClassPool.classesAccept(new AllMemberVisitor(nameMarker));
 
         // Mark attributes that have to be kept.
-        AttributeUsageMarker requiredAttributeUsageMarker =
-            new AttributeUsageMarker();
+        AttributeVisitor attributeUsageMarker =
+            new NonEmptyAttributeFilter(
+            new AttributeUsageMarker());
 
         AttributeVisitor optionalAttributeUsageMarker =
             configuration.keepAttributes == null ? null :
                 new AttributeNameFilter(new ListParser(new NameParser()).parse(configuration.keepAttributes),
-                                        requiredAttributeUsageMarker);
+                                        attributeUsageMarker);
 
         programClassPool.classesAccept(
             new AllAttributeVisitor(true,
-            new RequiredAttributeFilter(requiredAttributeUsageMarker,
+            new RequiredAttributeFilter(attributeUsageMarker,
                                         optionalAttributeUsageMarker)));
+
+        // Keep parameter names and types if specified.
+        if (configuration.keepParameterNames)
+        {
+            programClassPool.classesAccept(
+                new AllMethodVisitor(
+                new MemberNameFilter(
+                new AllAttributeVisitor(true,
+                new ParameterNameMarker(attributeUsageMarker)))));
+        }
 
         // Remove the attributes that can be discarded. Note that the attributes
         // may only be discarded after the seeds have been marked, since the
@@ -247,6 +258,19 @@ public class Obfuscator
                     new MemberAccessFilter(0, ClassConstants.INTERNAL_ACC_PRIVATE,
                     new MemberNameCollector(configuration.overloadAggressively,
                                             descriptorMap)))),
+
+                    // Collect all member names from interfaces of abstract
+                    // classes down the hierarchy.
+                    // Due to an error in the JLS/JVMS, virtual invocations
+                    // may end up at a private method otherwise (Sun/Oracle
+                    // bugs #6691741 and #6684387, ProGuard bug #3471941,
+                    // and ProGuard test #1180).
+                    new ClassHierarchyTraveler(false, false, false, true,
+                    new ClassAccessFilter(ClassConstants.INTERNAL_ACC_ABSTRACT, 0,
+                    new ClassHierarchyTraveler(false, false, true, false,
+                    new AllMemberVisitor(
+                    new MemberNameCollector(configuration.overloadAggressively,
+                                            descriptorMap))))),
 
                     // Assign new names to all private members in this class.
                     new AllMemberVisitor(
@@ -398,7 +422,18 @@ public class Obfuscator
             programClassPool.classesAccept(
                 new AllConstantVisitor(
                 new AccessFixer()));
+
+            // Fix the access flags of the inner classes information.
+            programClassPool.classesAccept(
+                new AllAttributeVisitor(
+                new AllInnerClassesInfoVisitor(
+                new InnerClassesAccessFixer())));
         }
+
+        // Fix the bridge method flags.
+        programClassPool.classesAccept(
+            new AllMethodVisitor(
+            new BridgeMethodFixer()));
 
         // Rename the source file attributes, if requested.
         if (configuration.newSourceFileAttribute != null)
@@ -406,15 +441,9 @@ public class Obfuscator
             programClassPool.classesAccept(new SourceFileRenamer(configuration.newSourceFileAttribute));
         }
 
-        // Mark NameAndType constant pool entries that have to be kept
-        // and remove the other ones.
-        programClassPool.classesAccept(new NameAndTypeUsageMarker());
-        programClassPool.classesAccept(new NameAndTypeShrinker());
-
-        // Mark Utf8 constant pool entries that have to be kept
-        // and remove the other ones.
-        programClassPool.classesAccept(new Utf8UsageMarker());
-        programClassPool.classesAccept(new Utf8Shrinker());
+        // Remove unused constants.
+        programClassPool.classesAccept(
+            new ConstantPoolShrinker());
     }
 
 
