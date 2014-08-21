@@ -3,6 +3,7 @@ proguard (5.0-1) unstable; urgency=medium
   * Team upload.
   * New upstream release (Closes: #754964)
     - Increased the source/target level to 1.5
+    - Depend on java5-runtime instead of java2-runtime
 
  -- Emmanuel Bourg <ebourg@apache.org>  Thu, 21 Aug 2014 07:55:44 +0200
 
