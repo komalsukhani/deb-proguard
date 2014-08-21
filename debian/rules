@@ -9,4 +9,4 @@ include /usr/share/cdbs/1/class/ant.mk
 JAVA_HOME		:= /usr/lib/jvm/default-java
 DEB_ANT_BUILDFILE	:= build/build.xml
 DEB_ANT_BUILD_TARGET	:= basic anttask
-DEB_ANT_ARGS		:= -Dant.build.javac.source=1.4 -Dant.build.javac.target=1.4
+DEB_ANT_ARGS		:= -Dant.build.javac.source=1.5 -Dant.build.javac.target=1.5
