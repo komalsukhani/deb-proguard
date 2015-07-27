@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2014 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2015 Eric Lafortune @ GuardSquare
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -197,20 +197,35 @@ public class ClassConstants
     public static final char METHOD_ARGUMENTS_OPEN  = '(';
     public static final char METHOD_ARGUMENTS_CLOSE = ')';
 
-    public static final String PACKAGE_JAVA_LANG                   = "java/lang/";
-    public static final String NAME_JAVA_LANG_OBJECT               = "java/lang/Object";
-    public static final String TYPE_JAVA_LANG_OBJECT               = "Ljava/lang/Object;";
-    public static final String NAME_JAVA_LANG_CLONEABLE            = "java/lang/Cloneable";
-    public static final String NAME_JAVA_LANG_THROWABLE            = "java/lang/Throwable";
-    public static final String NAME_JAVA_LANG_CLASS                = "java/lang/Class";
-    public static final String NAME_JAVA_LANG_STRING               = "java/lang/String";
-    public static final String NAME_JAVA_LANG_STRING_BUFFER        = "java/lang/StringBuffer";
-    public static final String NAME_JAVA_LANG_STRING_BUILDER       = "java/lang/StringBuilder";
-    public static final String NAME_JAVA_LANG_REFLECT_FIELD        = "java/lang/reflect/Field";
-    public static final String NAME_JAVA_LANG_REFLECT_METHOD       = "java/lang/reflect/Method";
-    public static final String NAME_JAVA_LANG_INVOKE_METHOD_HANDLE = "java/lang/invoke/MethodHandle";
-    public static final String NAME_JAVA_LANG_INVOKE_METHOD_TYPE   = "java/lang/invoke/MethodType";
-    public static final String NAME_JAVA_IO_SERIALIZABLE           = "java/io/Serializable";
+    public static final String PACKAGE_JAVA_LANG                        = "java/lang/";
+    public static final String NAME_JAVA_LANG_OBJECT                    = "java/lang/Object";
+    public static final String TYPE_JAVA_LANG_OBJECT                    = "Ljava/lang/Object;";
+    public static final String NAME_JAVA_LANG_CLONEABLE                 = "java/lang/Cloneable";
+    public static final String NAME_JAVA_LANG_THROWABLE                 = "java/lang/Throwable";
+    public static final String NAME_JAVA_LANG_CLASS                     = "java/lang/Class";
+    public static final String NAME_JAVA_LANG_STRING                    = "java/lang/String";
+    public static final String NAME_JAVA_LANG_STRING_BUFFER             = "java/lang/StringBuffer";
+    public static final String NAME_JAVA_LANG_STRING_BUILDER            = "java/lang/StringBuilder";
+    public static final String NAME_JAVA_LANG_INVOKE_METHOD_HANDLE      = "java/lang/invoke/MethodHandle";
+    public static final String NAME_JAVA_LANG_INVOKE_METHOD_TYPE        = "java/lang/invoke/MethodType";
+    public static final String NAME_JAVA_LANG_VOID                      = "java/lang/Void";
+    public static final String NAME_JAVA_LANG_BOOLEAN                   = "java/lang/Boolean";
+    public static final String NAME_JAVA_LANG_BYTE                      = "java/lang/Byte";
+    public static final String NAME_JAVA_LANG_SHORT                     = "java/lang/Short";
+    public static final String NAME_JAVA_LANG_CHARACTER                 = "java/lang/Character";
+    public static final String NAME_JAVA_LANG_INTEGER                   = "java/lang/Integer";
+    public static final String NAME_JAVA_LANG_LONG                      = "java/lang/Long";
+    public static final String NAME_JAVA_LANG_FLOAT                     = "java/lang/Float";
+    public static final String NAME_JAVA_LANG_DOUBLE                    = "java/lang/Double";
+    public static final String NAME_JAVA_LANG_MATH                      = "java/lang/Math";
+    public static final String NAME_JAVA_LANG_SYSTEM                    = "java/lang/System";
+    public static final String NAME_JAVA_LANG_RUNTIME                   = "java/lang/Runtime";
+    public static final String NAME_JAVA_LANG_REFLECT_ARRAY             = "java/lang/reflect/Array";
+    public static final String NAME_JAVA_LANG_REFLECT_FIELD             = "java/lang/reflect/Field";
+    public static final String NAME_JAVA_LANG_REFLECT_METHOD            = "java/lang/reflect/Method";
+    public static final String NAME_JAVA_LANG_REFLECT_CONSTRUCTOR       = "java/lang/reflect/Constructor";
+    public static final String NAME_JAVA_LANG_REFLECT_ACCESSIBLE_OBJECT = "java/lang/reflect/AccessibleObject";
+    public static final String NAME_JAVA_IO_SERIALIZABLE                = "java/io/Serializable";
 
     public static final String NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_INTEGER_FIELD_UPDATER   = "java/util/concurrent/atomic/AtomicIntegerFieldUpdater";
     public static final String NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_LONG_FIELD_UPDATER      = "java/util/concurrent/atomic/AtomicLongFieldUpdater";
@@ -319,11 +334,12 @@ public class ClassConstants
     public static final char TYPE_GENERIC_BOUND          = ':';
     public static final char TYPE_GENERIC_END            = '>';
 
-    public static final int TYPICAL_CONSTANT_POOL_SIZE     = 256;
-    public static final int TYPICAL_FIELD_COUNT            = 64;
-    public static final int TYPICAL_METHOD_COUNT           = 64;
-    public static final int TYPICAL_CODE_LENGTH            = 1024;
-    public static final int TYPICAL_EXCEPTION_TABLE_LENGTH = 16;
-    public static final int TYPICAL_VARIABLES_SIZE         = 64;
-    public static final int TYPICAL_STACK_SIZE             = 16;
+    public static final int TYPICAL_CONSTANT_POOL_SIZE       = 256;
+    public static final int TYPICAL_FIELD_COUNT              = 64;
+    public static final int TYPICAL_METHOD_COUNT             = 64;
+    public static final int TYPICAL_CODE_LENGTH              = 1024;
+    public static final int TYPICAL_LINE_NUMBER_TABLE_LENGTH = 1024;
+    public static final int TYPICAL_EXCEPTION_TABLE_LENGTH   = 16;
+    public static final int TYPICAL_VARIABLES_SIZE           = 64;
+    public static final int TYPICAL_STACK_SIZE               = 16;
 }

@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2014 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2015 Eric Lafortune @ GuardSquare
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -187,8 +187,10 @@ implements Comparable, ConstantVisitor
 
         result = kind < otherKind ? -1 :
                  kind > otherKind ?  1 :
-                     compare(methodHandleConstant.getName(clazz),
+                     compare(methodHandleConstant.getClassName(clazz),
+                             methodHandleConstant.getName(clazz),
                              methodHandleConstant.getType(clazz),
+                             otherMethodHandleConstant.getClassName(clazz),
                              otherMethodHandleConstant.getName(clazz),
                              otherMethodHandleConstant.getType(clazz));
     }

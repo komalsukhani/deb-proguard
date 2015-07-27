@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2014 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2015 Eric Lafortune @ GuardSquare
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -32,7 +32,6 @@ import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.*;
-
 
 /**
  * This ClassVisitor and MemberVisitor recursively marks all classes and class
@@ -67,6 +66,7 @@ implements ClassVisitor,
 
 
     private final MyInterfaceUsageMarker          interfaceUsageMarker           = new MyInterfaceUsageMarker();
+    private final MyDefaultMethodUsageMarker      defaultMethodUsageMarker       = new MyDefaultMethodUsageMarker();
     private final MyPossiblyUsedMemberUsageMarker possiblyUsedMemberUsageMarker  = new MyPossiblyUsedMemberUsageMarker();
     private final MemberVisitor                   nonEmptyMethodUsageMarker      = new AllAttributeVisitor(
                                                                                    new MyNonEmptyMethodUsageMarker());
@@ -176,6 +176,32 @@ implements ClassVisitor,
         {
             // Make sure all library interface methods are marked.
             UsageMarker.this.visitLibraryClass(libraryClass);
+        }
+    }
+
+
+    /**
+     * This MemberVisitor marks ProgramMethod objects of default
+     * implementations that may be present in interface classes.
+     */
+    private class MyDefaultMethodUsageMarker
+    extends       SimplifiedVisitor
+    implements    MemberVisitor
+    {
+        // Implementations for MemberVisitor.
+
+        public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
+        {
+            if (shouldBeMarkedAsUsed(programMethod))
+            {
+                markAsUsed(programMethod);
+
+                // Mark the method body.
+                markProgramMethodBody(programClass, programMethod);
+
+                // Note that, if the method has been marked as possibly used,
+                // the method hierarchy has already been marked (cfr. below).
+            }
         }
     }
 
@@ -354,6 +380,8 @@ implements ClassVisitor,
      */
     protected void markMethodHierarchy(Clazz clazz, Method method)
     {
+        // Only visit the hierarchy if the method is not private, static, or
+        // an initializer.
         int accessFlags = method.getAccessFlags();
         if ((accessFlags &
              (ClassConstants.ACC_PRIVATE |
@@ -369,6 +397,19 @@ implements ClassVisitor,
                 ((accessFlags & ClassConstants.ACC_PUBLIC) == 0 ? 0 :
                      ClassConstants.ACC_ABSTRACT);
 
+            // Mark default implementations in interfaces down the hierarchy,
+            // if this is an interface itself.
+            // TODO: This may be premature if there aren't any concrete implementing classes.
+            clazz.accept(new ClassAccessFilter(ClassConstants.ACC_INTERFACE, 0,
+                         new ClassHierarchyTraveler(false, false, false, true,
+                         new ProgramClassFilter(
+                         new ClassAccessFilter(ClassConstants.ACC_INTERFACE, 0,
+                         new NamedMethodVisitor(method.getName(clazz),
+                                                method.getDescriptor(clazz),
+                         new MemberAccessFilter(0, requiredUnsetAccessFlags,
+                         defaultMethodUsageMarker)))))));
+
+            // Mark other implementations.
             clazz.accept(new ConcreteClassDownTraveler(
                          new ClassHierarchyTraveler(true, true, false, true,
                          new NamedMethodVisitor(method.getName(clazz),
@@ -448,6 +489,9 @@ implements ClassVisitor,
             markAsUsed(invokeDynamicConstant);
 
             markConstant(clazz, invokeDynamicConstant.u2nameAndTypeIndex);
+
+            // Mark the referenced descriptor classes.
+            invokeDynamicConstant.referencedClassesAccept(this);
 
             // Mark the bootstrap methods attribute.
             clazz.attributesAccept(new MyBootStrapMethodUsageMarker(invokeDynamicConstant.u2bootstrapMethodAttributeIndex));
@@ -662,12 +706,15 @@ implements ClassVisitor,
 
     public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute)
     {
-        // Don't mark the attribute and its contents yet. We may mark them later,
-        // in SignatureUsageMarker.
-        //markAsUsed(signatureAttribute);
-        //
-        //markConstant(clazz, signatureAttribute.u2attributeNameIndex);
-        //markConstant(clazz, signatureAttribute.u2signatureIndex);
+        markAsUsed(signatureAttribute);
+
+        markConstant(clazz, signatureAttribute.u2attributeNameIndex);
+        markConstant(clazz, signatureAttribute.u2signatureIndex);
+
+        // Don't mark the referenced classes. We'll clean them up in
+        // ClassShrinker, if they appear unused.
+        //// Mark the classes referenced in the descriptor string.
+        //signatureAttribute.referencedClassesAccept(this);
     }
 
 
@@ -802,12 +849,12 @@ implements ClassVisitor,
     {
         // Don't mark the attribute and its contents yet. We may mark them later,
         // in AnnotationUsageMarker.
-//        markAsUsed(annotationDefaultAttribute);
-//
-//        markConstant(clazz, annotationDefaultAttribute.u2attributeNameIndex);
-//
-//        // Mark the constant pool entries referenced by the element value.
-//        annotationDefaultAttribute.defaultValueAccept(clazz, this);
+        //markAsUsed(annotationDefaultAttribute);
+        //
+        //markConstant(clazz, annotationDefaultAttribute.u2attributeNameIndex);
+        //
+        //// Mark the constant pool entries referenced by the element value.
+        //annotationDefaultAttribute.defaultValueAccept(clazz, this);
     }
 
 
