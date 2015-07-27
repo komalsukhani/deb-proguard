@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2014 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2015 Eric Lafortune @ GuardSquare
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -283,14 +283,31 @@ public class Optimizer
             new MethodrefTraveler(
             new ReferencedMemberVisitor(keepMarker))))))));
 
-        // We also keep all methods of classes that are returned by dynamic
+        // We also keep all bootstrap method arguments that point to methods.
+        // These arguments are typically the method handles for
+        // java.lang.invoke.LambdaMetafactory#metafactory, which provides the
+        // implementations for closures.
+        programClassPool.classesAccept(
+            new ClassVersionFilter(ClassConstants.CLASS_VERSION_1_7,
+            new AllAttributeVisitor(
+            new AttributeNameFilter(ClassConstants.ATTR_BootstrapMethods,
+            new AllBootstrapMethodInfoVisitor(
+            new BootstrapMethodArgumentVisitor(
+            new MethodrefTraveler(
+            new ReferencedMemberVisitor(keepMarker))))))));
+
+        // We also keep all classes (and their methods) returned by dynamic
         // method invocations. They may return dynamic implementations of
         // interfaces that otherwise appear unused.
         programClassPool.classesAccept(
             new ClassVersionFilter(ClassConstants.CLASS_VERSION_1_7,
             new AllConstantVisitor(
             new DynamicReturnedClassVisitor(
-            new AllMemberVisitor(keepMarker)))));
+            new MultiClassVisitor(new ClassVisitor[]
+            {
+                keepMarker,
+                new AllMemberVisitor(keepMarker)
+            })))));
 
         // Attach some optimization info to all classes and class members, so
         // it can be filled out later.

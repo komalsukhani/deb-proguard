@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2014 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2015 Eric Lafortune @ GuardSquare
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -2074,14 +2074,14 @@ implements   AttributeVisitor
                                              int variableIndex)
     {
         // Wasn't the variable set yet?
-        Value valueBefore = partialEvaluator.getVariablesBefore(instructionOffset).getValue(variableIndex);
+        Value valueBefore = simplePartialEvaluator.getVariablesBefore(instructionOffset).getValue(variableIndex);
         if (valueBefore == null)
         {
             return true;
         }
 
         // Is the computational type different now?
-        Value valueAfter = partialEvaluator.getVariablesAfter(instructionOffset).getValue(variableIndex);
+        Value valueAfter = simplePartialEvaluator.getVariablesAfter(instructionOffset).getValue(variableIndex);
         if (valueAfter.computationalType() != valueBefore.computationalType())
         {
             return true;
@@ -2096,7 +2096,7 @@ implements   AttributeVisitor
         }
 
         // Was the producer an argument (which may be removed)?
-        Value producersBefore = partialEvaluator.getVariablesBefore(instructionOffset).getProducerValue(variableIndex);
+        Value producersBefore = simplePartialEvaluator.getVariablesBefore(instructionOffset).getProducerValue(variableIndex);
         return producersBefore.instructionOffsetValue().instructionOffsetCount() == 1 &&
                producersBefore.instructionOffsetValue().instructionOffset(0) == PartialEvaluator.AT_METHOD_ENTRY;
     }

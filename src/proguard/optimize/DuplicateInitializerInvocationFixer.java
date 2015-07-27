@@ -2,7 +2,7 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2014 Eric Lafortune (eric@graphics.cornell.edu)
+ * Copyright (c) 2002-2015 Eric Lafortune @ GuardSquare
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -131,14 +131,14 @@ implements   AttributeVisitor,
 
     // Implementations for ConstantVisitor.
 
-    public void visitMethodrefConstant(Clazz clazz, MethodrefConstant methodrefConstant)
+    public void visitAnyMethodrefConstant(Clazz clazz, RefConstant refConstant)
     {
         // Check the referenced constructor descriptor.
-        if (methodrefConstant.getName(clazz).equals(ClassConstants.METHOD_NAME_INIT))
+        if (refConstant.getName(clazz).equals(ClassConstants.METHOD_NAME_INIT))
         {
-            descriptor = methodrefConstant.getType(clazz);
+            descriptor = refConstant.getType(clazz);
 
-            methodrefConstant.referencedMemberAccept(this);
+            refConstant.referencedMemberAccept(this);
         }
     }
 
