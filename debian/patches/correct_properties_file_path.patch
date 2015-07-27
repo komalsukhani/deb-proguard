@@ -1,0 +1,17 @@
+Description: Correct path of build.properties file
+Author: Komal Sukhani <komaldsukhani@gmail.com> 
+Forwarded: no 
+Last-Update: 2015-07-27
+Index: proguard/buildscripts/build.xml
+===================================================================
+--- proguard.orig/buildscripts/build.xml
++++ proguard/buildscripts/build.xml
+@@ -4,7 +4,7 @@
+          default = "all"
+          basedir = "..">
+ 
+-  <property file = "build/build.properties"/>
++  <property file = "buildscripts/build.properties"/>
+   <property name = "src"     value = "src"/>
+   <property name = "classes" value = "classes"/>
+   <property name = "lib"     value = "lib"/>

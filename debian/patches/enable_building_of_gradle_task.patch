@@ -1,0 +1,37 @@
+Description: Enable building of Proguard Gradle Task
+ This patch initialize gradle.home variable and change 
+ version of gradle jar files. 
+Author: Komal Sukhani <komaldsukhani@gmail.com> 
+Forwarded: no 
+Last-Update: 2015-07-27
+Index: proguard/buildscripts/build.properties
+===================================================================
+--- proguard.orig/buildscripts/build.properties
++++ proguard/buildscripts/build.properties
+@@ -1,4 +1,4 @@
+ # Ant build properties for ProGuard.
+ 
+-gradle.home = /usr/local/java/gradle
++gradle.home = /usr/share/java
+ wtk.home    = /usr/local/java/wtk
+Index: proguard/buildscripts/build.xml
+===================================================================
+--- proguard.orig/buildscripts/build.xml
++++ proguard/buildscripts/build.xml
+@@ -9,11 +9,11 @@
+   <property name = "classes" value = "classes"/>
+   <property name = "lib"     value = "lib"/>
+ 
+-  <property name = "gradle.jar1" value = "${gradle.home}/lib/plugins/gradle-plugins-2.2.1.jar"/>
+-  <property name = "gradle.jar2" value = "${gradle.home}/lib/gradle-base-services-2.2.1.jar"/>
+-  <property name = "gradle.jar3" value = "${gradle.home}/lib/gradle-base-services-groovy-2.2.1.jar"/>
+-  <property name = "gradle.jar4" value = "${gradle.home}/lib/gradle-core-2.2.1.jar"/>
+-  <property name = "gradle.jar5" value = "${gradle.home}/lib/groovy-all-2.3.6.jar"/>
++  <property name = "gradle.jar1" value = "${gradle.home}/gradle-plugins-2.5.jar"/>
++  <property name = "gradle.jar2" value = "${gradle.home}/gradle-base-services-2.5.jar"/>
++  <property name = "gradle.jar3" value = "${gradle.home}/gradle-base-services-groovy-2.5.jar"/>
++  <property name = "gradle.jar4" value = "${gradle.home}/gradle-core-2.5.jar"/>
++  <property name = "gradle.jar5" value = "${gradle.home}/groovy-all-2.x.jar"/>
+   <property name = "wtk.jar"     value = "${wtk.home}/wtklib/kenv.zip"/>
+ 
+   <target name = "all"     depends = "basic,options"/>
