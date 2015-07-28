@@ -6,6 +6,7 @@ proguard (5.2.1-1) UNRELEASED; urgency=medium
     - correct_properties_file_path
     - enable_building_of_gradle_task
   * Add gradle package in build depends
+  * d/control: Switch Vcs-Browser field to cgit
 
  -- komal Sukhani <komaldsukhani@gmail.com>  Mon, 27 Jul 2015 20:50:18 +0530
 
