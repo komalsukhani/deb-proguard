@@ -1,8 +1,7 @@
 proguard (5.2.1-1) UNRELEASED; urgency=medium
 
+  * Team upload
   * New upstream release
-  * Remove prebuilt jars from upstream tarball
-  * Remove non-free documentation from upstream tarball
   * Add new patches
     - correct_properties_file_path
     - enable_building_of_gradle_task
