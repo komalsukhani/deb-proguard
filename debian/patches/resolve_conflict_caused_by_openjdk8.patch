@@ -1,0 +1,19 @@
+Description: Fully qualify Optional annotation
+ This patch resolves conflict caused by introduction of Optional class 
+ in OpenJDK8. 
+Author: Komal Sukhani <komaldsukhani@gmail.com> 
+Forwarded: no 
+Last-Update: 2015-08-31
+Index: proguard/src/proguard/gradle/ProGuardTask.java
+===================================================================
+--- proguard.orig/src/proguard/gradle/ProGuardTask.java
++++ proguard/src/proguard/gradle/ProGuardTask.java
+@@ -68,7 +68,7 @@ public class ProGuardTask extends Defaul
+         return getProject().files(inJarFiles);
+     }
+ 
+-    @Optional @OutputFiles
++    @org.gradle.api.tasks.Optional @OutputFiles
+     protected FileCollection getOutJarFileCollection()
+     {
+         return getProject().files(outJarFiles);
