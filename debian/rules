@@ -6,7 +6,7 @@
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/ant.mk
 
-JAVA_HOME		:= /usr/lib/jvm/default-java
+JAVA_HOME		:= /usr/lib/jvm/java-8-openjdk-amd64
 DEB_ANT_BUILDFILE	:= buildscripts/build.xml
 DEB_ANT_BUILD_TARGET	:= basic anttask gradletask
 DEB_ANT_ARGS		:= -Dant.build.javac.source=1.5 -Dant.build.javac.target=1.5
